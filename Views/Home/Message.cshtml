@@ -1,0 +1,72 @@
+@model Acme.Http.AppResponse
+@{
+  ViewBag.Title = "Message API";
+}
+
+
+
+<div class="d-flex">
+  <div class="contextual-app w-50 p-4 overflow-y-auto">
+    <h3>@ViewBag.Title</h3>
+    <p>Example that shows how to post a chat message via the Web API.</p>
+
+    <div class="mb-3">
+      <label for="custom-msg" class="form-label">Chat message</label>
+      <textarea class="form-control" id="messageText" rows="3" placeholder="Write your message here..."></textarea>
+    </div>
+    <div class="mb-3">
+      <button id="messageBtn" type="button" class="btn btn-primary">Submit</button>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Response</label>
+      <pre class="code"><code id="msgResult">
+        </code></pre>
+    </div>
+
+  </div>
+  <div class="contextual-app w-50 border-start" data-uid="@Model.Uid"></div>
+
+</div>
+
+
+@section foot {
+  <script>
+    document.getElementById('messageBtn').addEventListener('click', async e => {
+
+        // get access token for user
+        let access_token = await weavy.authentication.getAccessToken();
+
+        // prepare request
+        const url = new URL('/api/apps/' + @Model.Id + '/messages', weavy.url);
+        const init = {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${access_token}`,
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            mode: 'cors',
+            body: JSON.stringify({
+                text: document.getElementById('messageText').value
+            })
+        };
+
+        // call weavy api to get current user
+        fetch(url, init)
+            .then(async response => {
+                if (response.status === 401) {
+                    // 401 Unauthorized could indicate an expired token
+                    console.warn("access token probably expired, trying again...");
+                    access_token = await weavy.authentication.getAccessToken(true);
+                    init.headers.Authorization = `Bearer ${access_token}`;
+                    return fetch(url, init);
+                }
+                return response;
+            })
+            .then(response => response.text())
+            .then(text => {
+                document.getElementById('msgResult').innerText = text;
+            });
+    });
+  </script>
+}

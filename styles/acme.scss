@@ -1,0 +1,277 @@
+// Bring in Bootstrap functions first (so we can manipulate colors, SVGs, calc, etc)
+@import "../node_modules/bootstrap/scss/functions";
+
+// Override Bootstrap variables
+
+// toggle global options
+$enable-rfs: false;
+$enable-smooth-scroll: false;
+
+// customize some defaults
+$btn-white-space: nowrap;
+$link-decoration: none;
+$transition-collapse: none;
+$transition-collapse-width: none;
+$navbar-brand-font-size: 1.5rem;
+$nav-link-font-weight: 500;
+$dropdown-item-padding-y: .5rem;
+
+// Bring in the rest of Bootstrap (but only the styles we need)
+// configuration
+@import "../node_modules/bootstrap/scss/variables";
+@import "../node_modules/bootstrap/scss/variables-dark";
+@import "../node_modules/bootstrap/scss/maps";
+@import "../node_modules/bootstrap/scss/mixins";
+@import "../node_modules/bootstrap/scss/utilities";
+
+// layout & components
+@import "../node_modules/bootstrap/scss/root";
+@import "../node_modules/bootstrap/scss/reboot";
+@import "../node_modules/bootstrap/scss/type";
+@import "../node_modules/bootstrap/scss/images";
+@import "../node_modules/bootstrap/scss/containers";
+@import "../node_modules/bootstrap/scss/grid";
+@import "../node_modules/bootstrap/scss/tables";
+@import "../node_modules/bootstrap/scss/forms";
+@import "../node_modules/bootstrap/scss/buttons";
+@import "../node_modules/bootstrap/scss/transitions";
+@import "../node_modules/bootstrap/scss/dropdown";
+@import "../node_modules/bootstrap/scss/button-group";
+@import "../node_modules/bootstrap/scss/nav";
+@import "../node_modules/bootstrap/scss/navbar";
+@import "../node_modules/bootstrap/scss/card";
+@import "../node_modules/bootstrap/scss/accordion";
+@import "../node_modules/bootstrap/scss/breadcrumb";
+@import "../node_modules/bootstrap/scss/pagination";
+@import "../node_modules/bootstrap/scss/badge";
+@import "../node_modules/bootstrap/scss/alert";
+@import "../node_modules/bootstrap/scss/progress";
+@import "../node_modules/bootstrap/scss/list-group";
+@import "../node_modules/bootstrap/scss/close";
+@import "../node_modules/bootstrap/scss/toasts";
+@import "../node_modules/bootstrap/scss/modal";
+@import "../node_modules/bootstrap/scss/tooltip";
+@import "../node_modules/bootstrap/scss/popover";
+@import "../node_modules/bootstrap/scss/carousel";
+@import "../node_modules/bootstrap/scss/spinners";
+@import "../node_modules/bootstrap/scss/offcanvas";
+@import "../node_modules/bootstrap/scss/placeholders";
+
+// helpers
+@import "../node_modules/bootstrap/scss/helpers";
+
+// utilities
+@import "../node_modules/bootstrap/scss/utilities/api";
+
+// Custom styles
+$navbar-height: 4rem;
+$sidebar-width: 270px;
+
+:root, [data-bs-theme=light] {
+  --navbar-bg: #{$gray-100};
+}
+
+[data-bs-theme=dark] {
+  --navbar-bg: #0d0d0d;
+}
+
+.navbar {
+  background-color: var(--navbar-bg);
+  height: $navbar-height;
+
+  &.fixed-top .dropdown-menu {
+    margin-top: .825rem;
+    min-width: 15rem;
+  }
+}
+
+.navbar-brand {
+  font-family: $font-family-monospace;
+}
+
+main {
+  margin-top: $navbar-height;
+
+  @include media-breakpoint-up(md) {
+    margin-left: $sidebar-width;
+  }
+}
+
+.sidebar {
+  background-color: var(--navbar-bg) !important;
+  position: fixed;
+  top: 4rem;
+  bottom: 0;
+  width: $sidebar-width;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  .offcanvas-header {
+    height: $navbar-height;
+  }
+
+  .offcanvas-body {
+    padding: $offcanvas-padding-y $offcanvas-padding-x;
+  }
+
+  .nav-link {
+    font-weight: 500;
+    color: var(--bs-body-color);
+
+    &.active {
+      color: #2470dc;
+    }
+
+    .feather {
+      margin-right: 4px;
+      color: #727272;
+    }
+
+    &:hover, &.active {
+      .feather {
+        color: inherit;
+      }
+    }
+  }
+
+  &.show {
+    @media (max-width: $offcanvas-horizontal-width) {
+      border-right: 0;
+    }
+  }
+
+
+  @include media-breakpoint-up(md) {
+    border-right: $offcanvas-border-width solid $offcanvas-border-color;
+  }
+}
+
+.sidebar-heading {
+  font-size: .75rem;
+}
+
+.feather {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  vertical-align: text-bottom;
+}
+
+
+.table-users {
+  table-layout: fixed;
+
+
+  td:nth-child(1), th:nth-child(1) {
+    width: 2.5rem;
+  }
+
+  td:nth-child(2), th:nth-child(2) {
+    width: 100%;
+    @include text-truncate;
+  }
+
+  td:nth-child(3), th:nth-child(3) {
+    width: 2.25rem;
+  }
+}
+
+
+.btn-icon {
+  color: #{$navbar-light-color};
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  position: relative;
+  width: 2.5rem;
+  height: 2.5rem;
+
+  &.btn-sm {
+    width: 1.75rem;
+    height: 1.75rem;
+
+    .feather {
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+}
+
+
+
+
+.theme-switcher {
+
+  .feather {
+    display: none;
+  }
+
+  [data-bs-theme=light] & {
+    background-color: rgba(255, 204, 133, 0.24);
+    color: #e5780b;
+
+    &:hover {
+      background-color: #e5780b;
+      color: #fff6e0;
+    }
+
+    .feather-sun {
+      display: initial;
+    }
+  }
+
+  [data-bs-theme=dark] & {
+    color: #85a9ff;
+    background-color: rgba(56,116,255,.24);
+
+    &:hover {
+      color: #f5f8ff;
+      background-color: rgba(56,116,255,.7);
+    }
+
+    .feather-moon {
+      display: initial;
+    }
+  }
+
+}
+
+.contextual-app {
+  height: calc(100vh - #{$navbar-height});
+}
+
+h1.http {
+  color: rgba(var(--bs-primary-rgb), 1);
+  font-size: 12rem;
+  font-weight: $font-weight-bold;
+  transform: rotate(-4deg);
+  text-shadow: 1rem 1rem rgba(var(--bs-primary-rgb), .5);
+}
+
+.btn-icon .badge {
+  border-radius: var(--bs-badge-font-size);
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+
+.read {
+  background-color: var(--bs-secondary-bg-subtle);
+  color: $text-muted;
+}
+
+.unread {
+  font-weight: $font-weight-medium;
+}
+
+pre:has(code) {
+  background-color: var(--bs-tertiary-bg);
+  border-radius: var(--bs-border-radius);
+  padding: 0.75rem 1.25rem;
+  white-space: pre-wrap;
+  
+}

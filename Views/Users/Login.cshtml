@@ -1,0 +1,37 @@
+@model LoginModel
+@{
+  Layout = null;
+}
+<!doctype html>
+<html lang="en">
+<head>
+  <partial name="_Head" />
+</head>
+<body>
+
+  <div class="container">
+    <div class="d-flex justify-content-center align-items-center min-vh-100">
+      <div class="flex-column" style="width:320px;">
+
+        <div class="text-center">
+          <img class="mb-4" src="~/logo.png" height="50" alt="">
+          <p class="text-muted">Sign in to get access to your account.</p>
+        </div>
+
+        <form asp-action="login">
+          <div class=" mb-3">
+            <input asp-for="Username" class="form-control" />
+          </div>
+          <div class="mb-3">
+            <input asp-for="Password" class="form-control" />
+          </div>
+          <button class="w-100 btn btn-primary" type="submit">Sign in</button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
+

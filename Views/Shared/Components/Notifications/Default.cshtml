@@ -1,0 +1,29 @@
+@model NotificationsResponse
+
+<div class="dropdown">
+  <button class="btn btn-icon" type="button" data-bs-toggle="dropdown">
+    <span data-feather="bell"></span>
+    <span id="notification-badge" class="badge bg-danger">@(Model.Count > 0 ? Model.Count : "")</span>
+  </button>
+  <div class="dropdown-menu dropdown-menu-end py-0">
+    <div class="card border-0">
+      <div class="card-header text-center">Unread notifications</div>
+      <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+          @if (Model.Data != null && Model.Data.Any()) {
+            @foreach (var notification in Model.Data) {
+              <a asp-action="get" asp-controller="notifications" asp-route-id="@notification.Id" class="list-group-item">@notification.Plain</a>
+            }
+          } else {
+            <p class="text-muted text-center my-3"><small>No unread notifications :)</small></p>
+          }
+        </div>
+      </div>
+      <div class="card-footer text-center p-1 border-0 border-top">
+          <a asp-action="index" asp-controller="notifications"><small>Notification history</small></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+

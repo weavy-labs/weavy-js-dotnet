@@ -1,0 +1,40 @@
+<nav class="navbar navbar-expand fixed-top border-bottom">
+  <div class="container-fluid">
+
+    <div class="navbar-nav align-items-center">
+      <a class="nav-link d-md-none" href="#" role="button" data-bs-toggle="offcanvas" data-bs-target="#menu"><span data-feather="menu"></span></a>
+      <a href="/" class="mx-2"><img src="~/logo.png" height="32" alt="logo" /></a>
+    </div>
+
+    <div class="navbar-nav align-items-center">
+
+      <button class="btn btn-sm btn-icon mx-2 theme-switcher" type="button" title="Switch theme">
+        <span data-feather="moon"></span>
+        <span data-feather="sun"></span>
+      </button>
+
+      @await Component.InvokeAsync("Notifications", new { unread = true })
+
+      <button class="btn btn-icon" type="button" data-bs-toggle="offcanvas" data-bs-target="#messenger"><span data-feather="message-square"></span><span id="messenger-badge" class="badge bg-danger"></span></button>
+
+      <div class="dropdown ms-2">
+        <a class="btn btn-icon" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><avatar for="@User" size="32" /></a>
+        <div class="dropdown-menu dropdown-menu-end">
+          <div class="text-center pt-4 pb-3">
+            <avatar for="@User" size="64" />
+            <h6 class="mt-2">@User.DisplayName()</h6>
+          </div>
+          <a asp-action="profile" asp-controller="users" class="dropdown-item"><span data-feather="user"></span> Profile</a>
+          <a asp-action="settings" asp-controller="users" class="dropdown-item"><span data-feather="settings"></span> Settings</a>
+          <hr class="dropdown-divider">
+          <div class="d-grid px-3 py-2">
+            <a class="btn btn-secondary" asp-action="logout" asp-controller="users"><span data-feather="log-out"></span> Sign out</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</nav>

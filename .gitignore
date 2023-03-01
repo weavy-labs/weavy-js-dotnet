@@ -1,0 +1,5 @@
+appsettings.json
+appsettings.*.json
+*.db*
+wwwroot/*.css
+wwwroot/*.js

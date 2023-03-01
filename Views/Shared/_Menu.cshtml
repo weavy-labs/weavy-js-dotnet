@@ -1,0 +1,26 @@
+<aside id="menu" class="sidebar offcanvas-md offcanvas-start" tabindex="-1">
+
+  <div class="offcanvas-header">
+    <img src="~/logo.png" class="ms-3" height="32" alt="logo" />
+    <button class="btn btn-icon pe-2" href="#" type="button" data-bs-dismiss="offcanvas" data-bs-target="#menu"><span data-feather="x"></span></button>
+  </div>
+
+  <div class="offcanvas-body">
+
+    <nav class="nav flex-column">
+      <a class="nav-link" asp-action="index" asp-controller="home" asp-active="action"><span data-feather="home"></span> Home</a>
+      <a class="nav-link" asp-action="index" asp-controller="users" asp-active="action"><span data-feather="users"></span> Users</a>
+
+      <h6 class="sidebar-heading px-3 mt-3 mb-1 text-muted text-uppercase">Weavy apps</h6>
+
+      <a class="nav-link" asp-action="chat" asp-controller="home" asp-active="action"><span data-feather="message-circle"></span> Chat</a>
+      <a class="nav-link" asp-action="feed" asp-controller="home" asp-active="action"><span data-feather="columns"></span> Feed</a>
+      <a class="nav-link" asp-action="files" asp-controller="home" asp-active="action"><span data-feather="folder"></span> Files</a>
+
+      <h6 class="sidebar-heading px-3 mt-3 mb-1 text-muted text-uppercase">Examples</h6>
+
+      <a class="nav-link" asp-action="message" asp-controller="home" asp-active="action"><span data-feather="message-square"></span> Message API</a>      
+
+    </nav>
+  </div>
+</aside>

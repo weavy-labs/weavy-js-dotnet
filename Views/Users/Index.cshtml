@@ -1,0 +1,21 @@
+@model IEnumerable<User>
+@{
+  ViewBag.Title = "Users";
+}
+<div class="container-fluid p-4">
+  
+    <table class="table table-users">
+      @foreach (var user in Model) {
+        <tr>
+          <td><avatar for="user" size="24" /></td>
+          <td>@user.Name <small class="text-muted">@@@user.Username</small></td>
+          <td>
+            @if (User.IsAdmin()) {
+              <a asp-action="edit" asp-route-id="@user.Id"><span data-feather="edit"></span></a>
+            }
+          </td>
+        </tr>
+      }
+    </table>
+
+</div>

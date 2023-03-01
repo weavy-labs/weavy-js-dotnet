@@ -1,0 +1,26 @@
+{
+  "private": true,
+  "browserslist": [
+    "defaults"
+  ],
+  "scripts": {
+    "build": "run-p css js",
+    "css": "sass --style=compressed --no-source-map --no-error-css styles:wwwroot",
+    "css-watch": "sass --watch --style=expanded --no-source-map styles:wwwroot ",
+    "js": "esbuild scripts/theme.js scripts/weavy.js --bundle --minify --outdir=wwwroot",
+    "js-watch": "esbuild scripts/theme.js scripts/weavy.js --bundle --watch --outdir=wwwroot",
+    "watch": "run-p css-watch js-watch"
+  },
+  "dependencies": {
+    "@popperjs/core": "^2.11.6",
+    "bootstrap": "^5.3.0-alpha1",
+    "esbuild": "^0.17.4",
+    "npm-run-all": "^4.1.5",
+    "sass": "^1.57.1"
+  },
+  "engines": {
+    "node": ">=19.3.0",
+    "npm": ">=9.2.0"
+  },
+  "version": "15.0.1-develop"
+}
