@@ -1,0 +1,65 @@
+// weavy reboot
+@use "theme/base/reboot";
+@use "theme/base/colors";
+@use "theme/base/vars";
+
+// weavy ui components
+@use "theme/alert";
+@use "theme/filebrowser";
+@use "theme/icons";
+@use "theme/overlays";
+@use "theme/panels";
+@use "theme/buttons";
+
+// dropin-js styles
+.wy-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    pointer-events: none;
+
+    font-family: var(--wy-font-family);
+    font-size: rem(1);
+    line-height: rem(1.5);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    flex: 1 1 100%;
+    height: 100%;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+  
+  .wy-container.wy-viewport {
+      position: fixed;
+      z-index: vars.$zindex-max; /* max possible z-index */
+  }
+
+  .wy-container:not(.wy-viewport) > * {
+    pointer-events: auto;
+  }
+
+  .wy-container iframe {
+    border: none;
+  }
+
+  .wy-container[data-weavy-error]::after {
+    content: "🤷 " attr(data-weavy-error);
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    color: #333;
+  }

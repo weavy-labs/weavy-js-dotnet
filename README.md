@@ -26,15 +26,14 @@ Some of the things showcased in the application are:
   {
     "Weavy": {
       "Server": "url to your weavy environment",
-      "ApiKey": "your api key"
+      "ApiKey": "your weavy environment api key"
     }
   }
   ```
 
 * Populate the `Server` property with the url to your Weavy environment.
 * Populate the `ApiKey` property with a valid API key from your Weavy environment.
-* Open a terminal window and run `npm install @weavy/dropin-js` to add the Weavy Dropin JS package.
-* Run `npm install && npm run build` to build css and js.
+* Open a terminal window and run `npm install && npm run build` to build css and js.
 * Run `dotnet run` from the terminal or press `Ctrl+F5` from Visual Studio to run the application.
 * Open your browser and navigate to https://localhost:7059. To login you can use any of the following credentials:
   
