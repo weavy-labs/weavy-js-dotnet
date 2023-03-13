@@ -20,7 +20,7 @@
     left: 0;
     pointer-events: none;
 
-    font-family: var(--wy-font-family);
+    font-family: var(--wy-font-family), inherit;
     font-size: rem(1);
     line-height: rem(1.5);
     position: relative;
@@ -44,22 +44,4 @@
 
   .wy-container iframe {
     border: none;
-  }
-
-  .wy-container[data-weavy-error]::after {
-    content: "🤷 " attr(data-weavy-error);
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #fff;
-    color: #333;
   }

@@ -234,7 +234,7 @@ var Weavy = function () {
   weavy.data = null;
 
   /**
-   * True when inatialization has started
+   * True when initialization has started
    * 
    * @type {boolean}
    */
@@ -678,9 +678,6 @@ var Weavy = function () {
       }
       if (weavy.options.tz) {
         initData.tz = weavy.options.tz;
-      }
-      if (weavy.options.theme) {
-        initData.theme = weavy.options.theme;
       }
 
       weavy.fetch(fetchInitUrl, initData, "POST", null, true).then(function (clientData) {
@@ -1367,8 +1364,7 @@ Weavy.presets = {
     plugins: {
       alert: true,
       filebrowser: true,
-      preview: true,
-      theme: true
+      preview: true
     }
   }
 };

@@ -57,7 +57,7 @@ export function updateStyleSheet(styleSheet, css) {
 class WeavyStyles {
 
   /**
-   * Is constructable stylesheets supprted by the browser?
+   * Is constructable stylesheets supported by the browser?
    * @memberof WeavyStyles.
    * @static 
    * @type {boolean}
@@ -114,7 +114,7 @@ class WeavyStyles {
   #css;
 
    /**
-    * List of any errors that has occured during stylesheet processing. 
+    * List of any errors that has occurred during stylesheet processing. 
     * @private
     * @type {{name: string, error: string}[]}
     */

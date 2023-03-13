@@ -435,6 +435,9 @@ var WeavyApp = function (weavy, options, data) {
           try {
             app.root = root = weavy.createRoot(app.container, appRootId, app);
 
+            app.root.styles.css = app.css;
+            app.root.className = app.className;
+
             root.apps = new Set();
 
             root.container.panels = weavy.panels.createContainer(app.root, "app-container-" + appId);
@@ -452,7 +455,7 @@ var WeavyApp = function (weavy, options, data) {
           var panelId = "app-" + appId;
           var controls = app.options && app.options.controls !== undefined ? app.options.controls : false;
 
-          app.panel = root.container.panels.addPanel(panelId, app.url, { controls: controls });
+          app.panel = root.container.panels.addPanel(panelId, app.url, { controls: controls, className: app.className });
 
           root.apps.add(app);
 
