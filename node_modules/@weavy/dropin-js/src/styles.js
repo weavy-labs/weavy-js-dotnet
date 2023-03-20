@@ -195,7 +195,7 @@ class WeavyStyles {
 
     if (isDocumentElementParent && this.#externalFont) {
       this.#weavy.debug("Setting root font.");
-      let fontCSS = `:host > * {--wy-font-family:${this.#externalFont};}`;
+      let fontCSS = `:host > * {--wy-font-family:${this.#externalFont}; font-family: var(--wy-font-family); }`;
       this.#styleSheets.font ??= createStyleSheet(this.root.dom)
       updateStyleSheet(this.#styleSheets.font, fontCSS);
     }
@@ -449,7 +449,14 @@ class WeavyStyles {
       rootColors = `:root{${colors.join('')}}`;
     }
 
-    return [rootFont, rootColors, this.#externalCss, rootVars, this.#weavy.css, this.#css].join("\n");
+    let combinedCSS = [rootFont, rootColors, this.#externalCss, rootVars, this.#weavy.css, this.#css].join("\n");
+
+    // Move @imports to the top
+    let foundImports = []
+    combinedCSS = combinedCSS.replace(/@import\s+\S*;?/gm, (match) => { foundImports.push(match); return ""; });
+    combinedCSS = foundImports.join("\n") + combinedCSS;
+
+    return combinedCSS;
   }
   
   /**

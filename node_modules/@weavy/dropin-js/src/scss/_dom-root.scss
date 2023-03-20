@@ -20,7 +20,7 @@
     left: 0;
     pointer-events: none;
 
-    font-family: var(--wy-font-family), inherit;
+    font-family: #{vars.$font-family-base}, inherit;
     font-size: rem(1);
     line-height: rem(1.5);
     position: relative;
