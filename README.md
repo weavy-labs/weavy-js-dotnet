@@ -1,6 +1,6 @@
 # Weavy JS UI kit + .NET
 
-A simple ASP.NET application with best-practices, examples and guides on how to integrate the Weavy drop-in UI. The application is structured like an intranet for the fictional ACME corporation and has basic features for user management including login, logout, editing user profiles and settings.
+A simple ASP.NET application with best-practices, examples and guides on how to integrate the Weavy JS UI. The application is structured like an intranet for the fictional ACME corporation and has basic features for user management including login, logout, editing user profiles and settings.
 
 Some of the things showcased in the application are:
 
