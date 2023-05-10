@@ -24,7 +24,7 @@
     </div>
 
   </div>
-  <div class="contextual-app w-50 border-start" data-uid="@Model.Uid"></div>
+  <div class="contextual-app w-50 border-start" data-uid="@Model.Uid" data-type="@Model.Type"></div>
 
 </div>
 
@@ -34,10 +34,10 @@
     document.getElementById('messageBtn').addEventListener('click', async e => {
 
         // get access token for user
-        let access_token = await weavy.authentication.getAccessToken();
+        let access_token = await Weavy.environment.authentication.getAccessToken();
 
         // prepare request
-        const url = new URL('/api/apps/' + @Model.Id + '/messages', weavy.url);
+        const url = new URL('/api/apps/' + @Model.Id + '/messages', Weavy.url);
         const init = {
             method: 'POST',
             headers: {
@@ -57,7 +57,7 @@
                 if (response.status === 401) {
                     // 401 Unauthorized could indicate an expired token
                     console.warn("access token probably expired, trying again...");
-                    access_token = await weavy.authentication.getAccessToken(true);
+                    access_token = await Weavy.environment.authentication.getAccessToken(true);
                     init.headers.Authorization = `Bearer ${access_token}`;
                     return fetch(url, init);
                 }

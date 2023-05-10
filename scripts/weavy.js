@@ -1,20 +1,26 @@
-import Weavy from '@weavy/dropin-js';
+import { Weavy, Messenger, Chat, Files, Posts } from '@weavy/dropin-js';
+console.log("Configuring ACME Weavy")
+
+// Expose Weavy to inline scripts
+window.Weavy = Weavy;
 
 // init weavy
-var weavy = window.weavy = new Weavy({
-  url: weavy_url,
-  tokenFactory: async (refresh) => {
+Weavy.url = weavy_url,
+Weavy.tokenFactory = async (refresh) => {
     var response = await fetch('/token?refresh=' + (refresh || false));
     return await response.text();
-  },
-  tz: user_timezone || '',
-  className: document.documentElement.dataset.bsTheme === 'dark' ? 'wy-dark' : ''
-});
+  }
+Weavy.tz = user_timezone || ''
+
+
+Weavy.defaults.className = document.documentElement.dataset.bsTheme === 'dark' ? 'wy-dark' : '';
 
 // listen to theme changes and update weavy accordingly
 const observer = new MutationObserver((mutationList) => {
   mutationList.forEach((mutation) => {
-    weavy.className = mutation.target.dataset.bsTheme === 'dark' ? 'wy-dark' : '';
+    let isDark = mutation.target.dataset.bsTheme === 'dark'
+    const apps = document.querySelectorAll('weavy-posts, weavy-messenger, weavy-chat, weavy-files')
+    apps.forEach((app) => isDark ? app.classList.add("wy-dark") : app.classList.remove("wy-dark"))   
   });
 });
 observer.observe(document.documentElement, { attributes: true });
@@ -23,39 +29,34 @@ observer.observe(document.documentElement, { attributes: true });
 const messengerContainer = document.getElementById("messenger");
 if (messengerContainer) {
   // load messenger
-  var messenger = weavy.app({
-    type: "messenger",
-    container: messengerContainer,
-    open: false, // app is initially closed
-    badge: true // enable the badge plugin
+  const messenger = new Messenger({
+    load: false, // app is initially unloaded
   });
 
-  // open/close messenger when container DOM element (bootstrap off-canvas) is shown/hidden 
+  // Set dark theme className for the messenger
+  if (document.documentElement.dataset.bsTheme === 'dark') {
+    messenger.classList.add("wy-dark")
+  } 
+
+  // Add the messenger to the DOM
+  messengerContainer.append(messenger)
+
+  // load messenger when container DOM element (bootstrap off-canvas) is shown 
   messengerContainer.addEventListener('show.bs.offcanvas', event => {
-    messenger.open();
-  });
-  messengerContainer.addEventListener('hide.bs.offcanvas', event => {
-    messenger.close();
+    messenger.load();
   });
 
   // listen for badge event on messenger and update UI accordingly
   const messengerBadge = document.getElementById('messenger-badge');
   if (messengerBadge) {
-    messenger.on('badge', (e, badge) => {
+    messenger.on('badge', (badge) => {
       // update ui with number of unread conversations
       messengerBadge.innerText = badge.count > 0 ? badge.count : '';
     });
   }
 }
 
-// load weavy contextual app(s)
-const appContainers = document.querySelectorAll('.contextual-app[data-uid]');
-appContainers.forEach((appContainer) => {
-  weavy.app({
-    uid: appContainer.dataset.uid,
-    container: appContainer
-  });
-});
+
 
 // connect to signalr hub for realtime events
 var connection = new signalR.HubConnectionBuilder().withUrl('/hub').build();
@@ -65,7 +66,7 @@ connection.on('notification', function (id) {
   console.log('received notification:', id);
 
   // display notification to user
-  weavy.fetch(`/api/notifications/${id}`).then(data => {
+  Weavy.fetch(`/api/notifications/${id}`).then(data => {
     console.log('notification', data.text);
 
     const toastContainer = document.getElementById('toasts');

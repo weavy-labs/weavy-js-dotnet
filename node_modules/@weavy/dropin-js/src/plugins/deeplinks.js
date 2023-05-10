@@ -1,5 +1,8 @@
 ﻿import Weavy from '../weavy';
+import WeavyConsole from '../utils/console';
+import { getBrowserState, setBrowserState } from '../utils/browser-history';
 
+const console = new WeavyConsole("Deeplinks")
 /**
  * Plugin for enabling url fragment (hash) deep links. 
  * 
@@ -31,22 +34,22 @@
 class DeeplinksPlugin {
     constructor(weavy, options) {
 
-        weavy.on("history", function (e, history) {
+        weavy.on("history", (history) => {
             var options = weavy.options.plugins.deeplinks;
 
-            var allOpenPanels = history.globalState.panels.filter(function (panelState) {
+            var allOpenPanels = history.globalState.panels.filter((panelState) => {
                 return panelState.changedAt && panelState.isOpen && (!panelState.statusCode || panelState.statusCode === 200);
             });
             var lastOpenPanel = allOpenPanels.slice(-1);
-            var panelUrls = (options.multiple ? allOpenPanels : lastOpenPanel).map(function (panelState) { return panelState.weavyUri; });
+            var panelUrls = (options.multiple ? allOpenPanels : lastOpenPanel).map((panelState) => panelState.weavyUri);
             history.url = panelUrls.length ? "#" + panelUrls.join(options.delimiter) : history.url.split("#")[0];
 
             return history;
         });
 
 
-        // Initital state
-        var state = weavy.history.getBrowserState();
+        // Initial state
+        var state = getBrowserState();
 
         // Set a state from the URL if no state is present
         if (!state && window.location.hash) {
@@ -54,8 +57,8 @@ class DeeplinksPlugin {
             var urlState = weavy.history.getStateFromUri(weavyUris);
 
             if (urlState.panels.length) {
-                weavy.debug("deeplinks: setting initial state");
-                weavy.history.setBrowserState(urlState, "replace");
+                console.debug("setting initial state");
+                setBrowserState(urlState, "replace");
             }
         }
     }

@@ -40,18 +40,34 @@ module.exports = (env) => {
   const config = {
     mode: "production",
     target: "web",
+    experiments: {
+      outputModule: true,
+    },
     entry: {
-      "weavy-dropin": {
-        import: './weavy-dropin.js',
+      "weavy": {
+        import: './weavy-uikit.js',
+        filename: '[name].js',
         library: {
-          name: { root: 'Weavy' },
-          type: 'umd',
-          export: 'default'
+          name: "self",
+          type: 'assign-properties',
         }
+      },
+      "weavy-esm": {
+        import: './weavy-uikit.js',
+        filename: 'weavy.mjs',
+        library: {
+          type: 'module',
+        },
+      },
+      "weavy-cjs": {
+        import: './weavy-uikit.js',
+        filename: 'weavy.cjs',
+        library: {
+          type: 'commonjs2',
+        },
       }
     },
     output: {
-      filename: '[name].js',
       path: path.resolve(__dirname, 'dist'),
       publicPath: "", // Needed for SystemJS compatibility
       clean: true

@@ -45,3 +45,7 @@
   .wy-container iframe {
     border: none;
   }
+
+  .wy-alert {
+    box-shadow: vars.$shadow-level1;
+  }

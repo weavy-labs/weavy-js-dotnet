@@ -1,7 +1,12 @@
-import { asElement } from './utils/utils';
-import customElementsCss from "./scss/_custom-elements.scss";
-import WeavyStyles, { createStyleSheet } from "./styles";
+import domRootCss from "../scss/_dom-root.scss";
+import customElementsCss from "../scss/_custom-elements.scss";
 
+import { asElement } from '../utils/dom';
+import WeavyConsole from '../utils/console';
+import WeavyEvents from '../utils/events';
+import { createStyleSheet, applyStyleSheet } from "./styles";
+
+const console = new WeavyConsole("DOM root")
 /**
  * @class WeavyRoot
 
@@ -31,7 +36,12 @@ import WeavyStyles, { createStyleSheet } from "./styles";
  * </style>
  * ```
  */
-class WeavyRoot {
+export default class WeavyRoot extends WeavyEvents {
+
+  static defaults = {
+    shadowMode: "closed"
+  }
+
   /**
    * Is ShadowDOM supported by the browser?
    * @memberof WeavyRoot.
@@ -39,6 +49,15 @@ class WeavyRoot {
    * @type {boolean}
    */
   static supportsShadowDOM = !!HTMLElement.prototype.attachShadow;
+
+  #environment;
+
+  /**
+   * The common stylesheet for each root.
+   * @private
+   * @type {CSSStyleSheet|StyleElement}
+   */
+  #commonStyleSheet;
 
   /**
    * The stylesheet available in the global scope.
@@ -49,29 +68,10 @@ class WeavyRoot {
   static globalStyleSheet;
 
   /**
-   * The id of the root.
-   * @type {string}
-   */
-  id;
-
-  /**
-   * The id without any weavy prefix
-   * @private
-   * @type {string}
-   */
-  #rawId;
-
-  /**
    * The parent DOM node where the root is attached.
    * @type {Element} 
    */
   parent;
-
-  /**
-   * The &lt;weavy/&gt; node which is the placeholder for the root. Attached to the parent.
-   * @type {Element}
-   */
-  section;
 
   /**
    * The the &lt;weavy-root/&gt; that acts as root. May contain a ShadowDOM if supported.
@@ -91,6 +91,15 @@ class WeavyRoot {
    */
   container;
 
+  #className = '';
+
+  get className() { return this.#className }
+  
+  set className(className) {
+      this.#className = className;
+      this.updateClassName();
+  }
+
   static registerCustomElements() {
     if (!WeavyRoot.globalStyleSheet) {
       /**
@@ -100,11 +109,12 @@ class WeavyRoot {
       if ('customElements' in window) {
         try {
           window.customElements.define('weavy-root', HTMLElement.prototype);
-          window.customElements.define('weavy-container', HTMLElement.prototype);
+          window.customElements.define('weavy-container', HTMLDivElement.prototype);
         } catch (e) { /* well, the browser didn't like it, no worries */ }
       }
     
-      WeavyRoot.globalStyleSheet = createStyleSheet(document, customElementsCss);
+      WeavyRoot.globalStyleSheet = createStyleSheet(customElementsCss);
+      applyStyleSheet(document, WeavyRoot.globalStyleSheet);
     }
   }
 
@@ -115,68 +125,45 @@ class WeavyRoot {
    * @param {string} id - The id of the root.
    * @param {*} [eventParent] - Optional parent to bubble events to.
    */
-  constructor(weavy, parent, id, eventParent) {
-    this.#rawId = weavy.removeId(id);
-    this.id = weavy.getId(id);
+  constructor(parent, eventParent) {
+    super()
+
     this.parent = asElement(parent);
 
     if (!this.parent) {
-      throw new Error("No parent container defined" + this.id);
+      throw new Error("No parent container defined");
     }
 
     // Events
-    this.eventParent = eventParent;
-    this.on = weavy.events.on.bind(this);
-    this.one = weavy.events.one.bind(this);
-    this.off = weavy.events.off.bind(this);
-    this.triggerEvent = weavy.events.triggerEvent.bind(this);
+    if (eventParent) {
+      this.eventParent = eventParent;
+    }
 
     WeavyRoot.registerCustomElements();
 
-    this.section = document.createElement("weavy");
-
-    this.section.id = this.id;
-
     this.root = document.createElement("weavy-root");
-    this.root.setAttribute("data-version", weavy.version);
 
     this.container = document.createElement("weavy-container");
     this.container.className = "wy-container";
-    this.container.id = weavy.getId("container-" + this.#rawId);
-  
-    var _className = '';
-
-    Object.defineProperty(this, "className", {
-      get: function () { return _className },
-      set: function (className) {
-        _className = className;
-        this.updateClassName();
-      }
-    })
-
-    this.updateClassName = function updateClassName() {
-      this.container.className = ["wy-container", weavy.className, this.className].filter((x) => x).join(" ");
-    };
 
     this.triggerEvent("before:root-create", this);
 
-    this.parent.appendChild(this.section);
-    this.section.appendChild(this.root);
+    this.parent.appendChild(this.root);
 
     if (WeavyRoot.supportsShadowDOM) {
-      if (weavy.options.shadowMode === "open") {
-        weavy.warn(this.id, "Using ShadowDOM in open mode", this.id);
+      if (WeavyRoot.defaults.shadowMode === "open") {
+        console.warn(this.id, "Using ShadowDOM in open mode", this.id);
       }
-      this.dom = this.root.attachShadow({ mode: weavy.options.shadowMode || "closed" });
+      this.dom = this.root.attachShadow({ mode: WeavyRoot.defaults.shadowMode || "closed" });
     } else {
       this.dom = this.root;
     }
     this.dom.appendChild(this.container);
 
-    this.styles = new WeavyStyles(weavy, this, this);
-
     this.updateClassName();
-    weavy.on("update-class-name", this.updateClassName.bind(this));
+
+    this.#commonStyleSheet = createStyleSheet(domRootCss);
+    applyStyleSheet(this.dom, this.#commonStyleSheet)
 
     /**
      * Triggered when a shadow root is created
@@ -188,18 +175,23 @@ class WeavyRoot {
 
     queueMicrotask(() => this.triggerEvent("after:root-create", this));
   }
+  
+  updateClassName() {
+    if (this.container) {
+      this.container.className = ["wy-container", this.#className].filter((x) => x).join(" ");
+    }
+  }
+
 
   remove() {
     this.triggerEvent("before:root-remove", this);
 
-    if (this.section) {
-      this.section.remove();
-      this.section = null;
+    if (this.root) {
+      this.root.remove();
+      this.root = null;
     }
 
     this.triggerEvent("on:root-remove", this);
     this.triggerEvent("after:root-remove", this);
   }
 }
-
-export default WeavyRoot;

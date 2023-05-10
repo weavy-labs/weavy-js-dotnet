@@ -1,29 +1,40 @@
-import domRootCss from "./scss/_dom-root.scss";
 import { TonalPalette } from "@material/material-color-utilities/dist/palettes/tonal_palette";
 import { Hct } from "@material/material-color-utilities/dist/hct/hct";
 import { argbFromHex, hexFromArgb } from "@material/material-color-utilities/dist/utils/string_utils";
 import { Blend } from "@material/material-color-utilities/dist/blend/blend";
+import WeavyConsole from '../utils/console';
+import WeavyEvents from "../utils/events";
 
-export function createStyleSheet(root, css) {
+const console = new WeavyConsole("Styles")
+
+export function applyStyleSheet(root, stylesheet) {
   // Prefer modern CSS registration
-  if (WeavyStyles.supportsConstructableStylesheets) {
+  if (WeavyStyles.supportsConstructableStyleSheets) {
+    root.adoptedStyleSheets = Array.prototype.concat.call(root.adoptedStyleSheets, [stylesheet]);
+  } else {
+    // Fallback CSS registration
+    (root === document ? document.head : root).appendChild(stylesheet);
+  }
+}
+
+export function createStyleSheet(css) {
+  // Prefer modern CSS registration
+  if (WeavyStyles.supportsConstructableStyleSheets) {
     let sheet = new CSSStyleSheet();
     css && updateStyleSheet(sheet, css);
-    root.adoptedStyleSheets = Array.prototype.concat.call(root.adoptedStyleSheets, [sheet]);
     return sheet;
   } else {
     // Fallback CSS registration
     let elementStyleSheet = document.createElement("style");
     elementStyleSheet.dataset.weavy = true;
     css && updateStyleSheet(elementStyleSheet, css);
-    (root === document ? document.head : root).appendChild(elementStyleSheet);
     return elementStyleSheet;
   }
 }
 
 export function updateStyleSheet(styleSheet, css) {
     // Prefer modern CSS registration
-    if (WeavyStyles.supportsConstructableStylesheets) {
+    if (WeavyStyles.supportsConstructableStyleSheets) {
       styleSheet.replaceSync(css);
     } else {
       // Fallback CSS registration
@@ -54,7 +65,7 @@ export function updateStyleSheet(styleSheet, css) {
  * </style>
  * ```
  */
-class WeavyStyles {
+export default class WeavyStyles extends WeavyEvents {
 
   /**
    * Is constructable stylesheets supported by the browser?
@@ -62,21 +73,14 @@ class WeavyStyles {
    * @static 
    * @type {boolean}
    */
-  static supportsConstructableStylesheets = 'adoptedStyleSheets' in document;
+  static supportsConstructableStyleSheets = 'adoptedStyleSheets' in document;
 
   /**
-   * The common stylesheet for each root.
+   * The node where external styles are calculated from.
    * @private
-   * @type {CSSStyleSheet|StyleElement}
+   * @type {HTMLElement}
    */
-  #commonStyleSheet;
-
-  /**
-   * The weavy instance
-   * @private
-   * @type {Weavy}
-   */
-  #weavy;
+  #element;
 
   /**
    * The external styles found.
@@ -111,93 +115,85 @@ class WeavyStyles {
    * @private
    * @type {String}
    */
-  #css;
+  #css = '';
+
+  get css() {
+    return this.#css;
+  }
+
+  set css(css) {
+    this.#css = css
+
+    // Check if we have a new color?
+    this.#updateExternalColor();
+
+    this.styleSheets.custom ??= createStyleSheet();
+    updateStyleSheet(this.styleSheets.custom, css);
+
+    this.#showAnyErrors(this.#element.id, "Some stylesheets could not be processed");
+  }
 
    /**
     * List of any errors that has occurred during stylesheet processing. 
     * @private
     * @type {{name: string, error: string}[]}
     */
-  #styleSheetErrors;
+  #styleSheetErrors = [];
 
   /**
    * List of all added stylesheets.
    * @private
    * @type {Array.<string>}
    */
-  #styleSheets;
+  styleSheets = {};
 
   /**
    * Creates a sealed shadow DOM and injects additional styles into the created root.
    * @param {Weavy} weavy - Weavy instance
-   * @param {WeavyRoot} root - The root where styles should be applied.
-   * @param {*} [eventParent] - Optional parent to bubble events to.
+   * @param {HTMLElement} element - The root element from where external styles are fetched.
    */
-  constructor(weavy, root, eventParent) {
-    this.#weavy = weavy;
+  constructor(element, eventParent) {
+    super();
 
-    // Events
-    this.eventParent = eventParent;
-    this.on = weavy.events.on.bind(this);
-    this.one = weavy.events.one.bind(this);
-    this.off = weavy.events.off.bind(this);
-    this.triggerEvent = weavy.events.triggerEvent.bind(this);
+    this.#element = element;
 
-    this.root = root;
-
-    // STYLES
-    this.#css = '';
-    this.#styleSheets = {};
-    this.#styleSheetErrors = [];
-
-    if (weavy.options.includeStyles) {
-      this.#setCommonStyles();
+    if (eventParent) {
+      this.eventParent = eventParent;
     }
 
     this.updateStyles();
-
-    weavy.on("update-css", this.updateStyles.bind(this));
   }
 
   updateStyles() {
-    this.#weavy.log("Updating styles");
+    console.log("Updating styles");
 
-    this.triggerEvent("before:root-styles");
+    this.triggerEvent("before:styles-update");
 
-    if (this.#weavy.options.includeFont) {
+    //if (this.#weavy.options.includeFont) {
       this.#updateExternalFont();
-    }
+    //}
     
     this.#updateExternalStyles();
-    this.#updateWeavyStyles();
 
-    if (this.#weavy.options.includeThemeColor) {
+    //if (this.#weavy.options.includeThemeColor) {
       this.#updateExternalColor();
-    }
+    //}
 
-    this.triggerEvent("on:root-styles");  
-    this.#showAnyErrors(this.id, "Some stylesheets could not be processed");
-    this.triggerEvent("after:root-styles");
-  }
-
-
-  #setCommonStyles() {
-    // This never changes
-    if(!this.#commonStyleSheet) {
-      this.#commonStyleSheet = createStyleSheet(this.root.dom, domRootCss);
-    }
+    queueMicrotask(() => {
+      this.triggerEvent("on:styles-update");  
+      this.#showAnyErrors("Some stylesheets could not be processed");
+      this.triggerEvent("after:styles-update");
+    })
   }
 
   #updateExternalFont() {
-    let isDocumentElementParent = this.root.parent === document.documentElement
-    let parent = isDocumentElementParent ? document.body : this.root.parent;
-    this.#externalFont = getComputedStyle(parent).fontFamily;
+    this.#externalFont = getComputedStyle(this.#element).fontFamily;
 
-    if (isDocumentElementParent && this.#externalFont) {
-      this.#weavy.debug("Setting root font.");
+    if (this.#externalFont) {
+      console.debug("Setting root font.");
       let fontCSS = `:host > * {--wy-font-family:${this.#externalFont}; font-family: var(--wy-font-family); }`;
-      this.#styleSheets.font ??= createStyleSheet(this.root.dom)
-      updateStyleSheet(this.#styleSheets.font, fontCSS);
+      this.styleSheets.font ??= createStyleSheet()
+      updateStyleSheet(this.styleSheets.font, fontCSS);
     }
   }
 
@@ -205,16 +201,15 @@ class WeavyStyles {
     var themeColor;
 
     // Check for theme color in custom css
-    let themeColorMatch = [...(this.#weavy.css + this.#css).matchAll(/--wy-theme-color\s*:\s*(#[a-f\d]{6});/ig)]?.pop();
+    let themeColorMatch = [...(this.#css).matchAll(/--wy-theme-color\s*:\s*(#[a-f\d]{6});/ig)]?.pop();
     if (themeColorMatch) {
-      this.#weavy.debug("Found theme color in custom css.", themeColorMatch);
+      console.debug("Found theme color in custom css.", themeColorMatch);
       themeColor = themeColorMatch[1];
     }
 
     if(!themeColor) {
       // By inherited --wy-theme
-      let parent = this.root.parent === document.documentElement ? document.body : this.root.parent;
-      themeColor = getComputedStyle(parent).getPropertyValue("--wy-theme-color");
+      themeColor = getComputedStyle(this.#element).getPropertyValue("--wy-theme-color");
     }
 
     if (!themeColor) {
@@ -237,7 +232,7 @@ class WeavyStyles {
     var possibleExternalVars = [];
 
     // Gather possible custom properties from DOM parents
-    for (var parent = { parentElement: this.root.parent }; (parent = parent.parentElement);) {
+    for (var parent = { parentElement: this.#element }; (parent = parent.parentElement);) {
       for (var style of parent.style) {
         if (style.startsWith('--wy-')) {
           possibleExternalVars.push(style);
@@ -253,7 +248,7 @@ class WeavyStyles {
             if (!rule.parentRule) {
               // Look for .wy- selectors
               if (rule.cssText.includes('.wy-')) {
-                this.#weavy.debug("Found external rule", rule.cssText)
+                console.debug("Found external rule", rule.cssText)
                 this.#externalCss += rule.cssText + "\n";
               }
               // Look for --wy- custom properties
@@ -274,45 +269,19 @@ class WeavyStyles {
     }
     
     // Try possible custom properties and add them if available to parent
-    let parentStyles = getComputedStyle(this.root.parent);
+    let parentStyles = getComputedStyle(this.#element);
     
     possibleExternalVars.forEach((varName) => {
       let varValue = parentStyles.getPropertyValue(varName);
       if (varValue) {
         let externalVar = `${varName}:${varValue};`;
-        this.#weavy.debug("Found external custom property", externalVar)
+        console.debug("Found external custom property", externalVar)
         this.#externalVars += externalVar;
       } 
     })
 
-    this.#styleSheets.external ??= createStyleSheet(this.root.dom)
-    updateStyleSheet(this.#styleSheets.external, this.#externalCss)
-  }
-
-  #updateWeavyStyles() {
-    this.#styleSheets.weavy ??= createStyleSheet(this.root.dom);
-    updateStyleSheet(this.#styleSheets.weavy , this.#weavy.css);
-  }
-
-
-  get css() {
-    return this.#css;
-  }
-
-  set css(css) {
-    this.#css = css
-
-    this.triggerEvent("before:root-styles");
-
-    this.#updateExternalColor();
-
-    this.#styleSheets.custom ??= createStyleSheet(this.root.dom);
-    updateStyleSheet(this.#styleSheets.custom, css);
-
-    this.triggerEvent("on:root-styles");
-    this.triggerEvent("after:root-styles");
-
-    this.#showAnyErrors(this.id, "Some stylesheets could not be processed");
+    this.styleSheets.external ??= createStyleSheet()
+    updateStyleSheet(this.styleSheets.external, this.#externalCss)
   }
 
   getAllCSS() {
@@ -409,7 +378,7 @@ class WeavyStyles {
         "gray": { light: 50, dark: 60 }
       }
 
-      this.#weavy.debug("theme color", this.#externalColor);
+      console.debug("theme color", this.#externalColor);
 
       for (let colorName in colorToneMap) {
         let tones = colorToneMap[colorName];
@@ -449,7 +418,7 @@ class WeavyStyles {
       rootColors = `:root{${colors.join('')}}`;
     }
 
-    let combinedCSS = [rootFont, rootColors, this.#externalCss, rootVars, this.#weavy.css, this.#css].join("\n");
+    let combinedCSS = [rootFont, rootColors, this.#externalCss, rootVars, this.#css].filter((s) => s).join("\n");
 
     // Move @imports to the top
     let foundImports = []
@@ -466,24 +435,10 @@ class WeavyStyles {
   #showAnyErrors(...labels) {
     if (this.#styleSheetErrors.length) {
 
-      this.#weavy.error(...labels);
-      this.#styleSheetErrors.forEach((e) => this.#weavy.warn(e.name.toString(), e.error.toString()));
+      console.error(...labels);
+      this.#styleSheetErrors.forEach((e) => console.warn(e.name.toString(), e.error.toString()));
 
       this.#styleSheetErrors = [];
     }
   }
-
-  remove() {
-    this.triggerEvent("before:root-remove", this);
-
-    if (this.section) {
-      this.section.remove();
-      this.section = null;
-    }
-
-    this.triggerEvent("on:root-remove", this);
-    this.triggerEvent("after:root-remove", this);
-  }
 }
-
-export default WeavyStyles;

@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json.Serialization;
 
 namespace Acme.Http;
@@ -7,7 +8,7 @@ namespace Acme.Http;
 /// </summary>
 public class NotificationsResponse {
 
-    public NotificationResponse[] Data { get; set; }
+    public NotificationResponse[] Data { get; set; } = Array.Empty<NotificationResponse>();
 
     /// <summary>
     /// First notification (for paging).

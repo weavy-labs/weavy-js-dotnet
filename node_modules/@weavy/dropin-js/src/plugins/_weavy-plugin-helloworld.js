@@ -1,4 +1,7 @@
 ﻿import Weavy from '../weavy';
+import WeavyConsole from '../utils/console';
+
+const console = new WeavyConsole("HelloWorldPlugin")
 
 // This is an example hello-world plugin for Weavy.
 // It adds the class 'weavy-hello-world' to the weavy container.
@@ -18,7 +21,7 @@ class HelloWorldPlugin {
 
         // Register a public method on weavy
         // Avoid prototype methods, since they cannot be disabled
-        weavy.helloWorld = function (targetText) {
+        weavy.helloWorld = (targetText) => {
 
             // Combine the common weavy property and the provided text
             sayHello(weavy.helloText + "-" + targetText);
@@ -29,17 +32,17 @@ class HelloWorldPlugin {
             var root = weavy.getRoot();
             if (root) {
                 // Add weavy-hello-world class to the main weavy container
-                root.section.classList.add(classText);
+                root.container.classList.add(classText);
 
                 // This is the last step in the flow and shows true if everything was successful
-                weavy.log("Hello World done:", root.section.classList.contains("hello-world"));
+                console.log("Hello World done:", root.container.classList.contains("hello-world"));
             }
         }
 
         // Add a one-time load event listener
-        weavy.one("load", function (e) {
-            weavy.debug("Hello World oneload");
-            weavy.info("Weavy ver:", Weavy.version);
+        weavy.one("load", () => {
+            console.debug("Hello World oneload");
+            console.info("Weavy ver:", Weavy.version);
 
             // Check if this plugin is enabled.
             // Not necessary here, but useful if you reference another plugin instead

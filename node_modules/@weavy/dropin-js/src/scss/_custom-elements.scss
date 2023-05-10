@@ -2,13 +2,23 @@
 // <weavy> and <weavy-root> gets layout only if needed 
 
 @supports (display: contents) {
-    weavy, weavy-root { 
+    weavy-root,
+    weavy-app, 
+    weavy-messenger,
+    weavy-chat,
+    weavy-posts,
+    weavy-files { 
         display: contents; 
     };
 }
 
 @supports not (display: contents) {
-    weavy, weavy-root { 
+    weavy-root,
+    weavy-app, 
+    weavy-messenger,
+    weavy-chat,
+    weavy-posts,
+    weavy-files { 
         display: flex; 
         position: absolute; 
         top: 0; 
@@ -16,5 +26,5 @@
         right: 0; 
         bottom: 0; 
         pointer-events: none; 
-      }
+    }
 }

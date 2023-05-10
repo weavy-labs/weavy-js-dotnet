@@ -1,11 +1,21 @@
 {
   "name": "@weavy/dropin-js",
-  "version": "16.0.2",
+  "version": "17.0.0",
   "author": "Weavy",
   "description": "Javascript library for the Weavy drop-in UI",
   "homepage": "https://github.com/weavy/weavy-dropin-js",
   "license": "MIT",
-  "main": "dist/weavy-dropin.js",
+  "main": "dist/weavy.js",
+  "exports": {
+    ".": {
+      "import": {
+        "default": "./dist/weavy.mjs"
+      },
+      "require": {
+        "default": "./dist/weavy.cjs"
+      }
+    }
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --env production",
