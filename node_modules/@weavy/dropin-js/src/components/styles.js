@@ -286,7 +286,7 @@ export default class WeavyStyles extends WeavyEvents {
 
   getAllCSS() {
     var rootFont = this.#externalFont ? `:root{--wy-font-family:${this.#externalFont};}` : '';
-    var rootVars = this.#externalVars ? `:root{${this.#externalVars}}` : '';
+    var rootVars = this.#externalVars ? `:root{ ${this.#externalVars} }` : '';
     var rootColors = '';
 
     if (this.#externalColor) {

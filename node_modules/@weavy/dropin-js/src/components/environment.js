@@ -3,6 +3,7 @@ import {
   processJSONResponse,
   defaultFetchSettings,
 } from "../utils/data";
+import { ready } from "../utils/dom";
 import { assign } from "../utils/objects";
 import WeavyAuthenticationsManager from "./authentication";
 import WeavyUrlClassManager from "../utils/url-class-manager";
@@ -100,9 +101,11 @@ class WeavyEnvironment extends WeavyEvents {
     this.#authentication = WeavyAuthenticationsManager.get(url);
 
     this.authentication.whenAuthenticated().then(() => {
-      doFrameStatusCheck(this).then(() => {
-        this.#whenStatusChecked.resolve();
-      });
+      ready(() => {
+        doFrameStatusCheck(this).then(() => {
+          this.#whenStatusChecked.resolve();
+        });
+      })
     });
 
     // HISTORY

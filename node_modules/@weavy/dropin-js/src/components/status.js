@@ -38,10 +38,10 @@ export default function frameStatusCheck(environment) {
     statusFrame.id = environment.getId("status-check");
     statusFrame.setAttribute("name", environment.getId("status-check"));
 
-    dialogRoot ??= new WeavyRoot(
-      document.documentElement,
-      null
-    );
+    if(!dialogRoot) {
+      dialogRoot = new WeavyRoot();
+      document.documentElement.append(dialogRoot.root)
+    } 
 
     dialog ??= new WeavyDialog(dialogRoot)
 

@@ -1,7 +1,6 @@
 import domRootCss from "../scss/_dom-root.scss";
 import customElementsCss from "../scss/_custom-elements.scss";
 
-import { asElement } from '../utils/dom';
 import WeavyConsole from '../utils/console';
 import WeavyEvents from '../utils/events';
 import { createStyleSheet, applyStyleSheet } from "./styles";
@@ -50,8 +49,6 @@ export default class WeavyRoot extends WeavyEvents {
    */
   static supportsShadowDOM = !!HTMLElement.prototype.attachShadow;
 
-  #environment;
-
   /**
    * The common stylesheet for each root.
    * @private
@@ -66,12 +63,6 @@ export default class WeavyRoot extends WeavyEvents {
    * @type {CSSStyleSheet|StyleElement}
    */
   static globalStyleSheet;
-
-  /**
-   * The parent DOM node where the root is attached.
-   * @type {Element} 
-   */
-  parent;
 
   /**
    * The the &lt;weavy-root/&gt; that acts as root. May contain a ShadowDOM if supported.
@@ -125,14 +116,8 @@ export default class WeavyRoot extends WeavyEvents {
    * @param {string} id - The id of the root.
    * @param {*} [eventParent] - Optional parent to bubble events to.
    */
-  constructor(parent, eventParent) {
+  constructor(eventParent) {
     super()
-
-    this.parent = asElement(parent);
-
-    if (!this.parent) {
-      throw new Error("No parent container defined");
-    }
 
     // Events
     if (eventParent) {
@@ -148,16 +133,11 @@ export default class WeavyRoot extends WeavyEvents {
 
     this.triggerEvent("before:root-create", this);
 
-    this.parent.appendChild(this.root);
-
-    if (WeavyRoot.supportsShadowDOM) {
-      if (WeavyRoot.defaults.shadowMode === "open") {
-        console.warn(this.id, "Using ShadowDOM in open mode", this.id);
-      }
-      this.dom = this.root.attachShadow({ mode: WeavyRoot.defaults.shadowMode || "closed" });
-    } else {
-      this.dom = this.root;
+    if (WeavyRoot.defaults.shadowMode === "open") {
+      console.warn(this.id, "Using ShadowDOM in open mode", this.id);
     }
+    this.dom = this.root.attachShadow({ mode: WeavyRoot.defaults.shadowMode || "closed" });
+    
     this.dom.appendChild(this.container);
 
     this.updateClassName();
@@ -181,7 +161,6 @@ export default class WeavyRoot extends WeavyEvents {
       this.container.className = ["wy-container", this.#className].filter((x) => x).join(" ");
     }
   }
-
 
   remove() {
     this.triggerEvent("before:root-remove", this);

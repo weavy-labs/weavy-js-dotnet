@@ -147,7 +147,7 @@ class Weavy extends HTMLElement {
 
   get fetch() {
     if (!this.#environment) {
-      throw new Error("No URL is defined for the environment. Please point Weavy.url to your environment.")
+      throw new Error("fetch: No URL is defined for the environment. Please point Weavy.url to your environment.")
     }
     return this.environment?.fetch;
   }
@@ -180,12 +180,15 @@ class Weavy extends HTMLElement {
 
   constructor(){
     super()
+  }
 
+  connectedCallback() {
     this.getAttributeNames().forEach((attr) => {
-        this.attributeChangedCallback(attr, null, this.getAttribute(attr))
+      this.attributeChangedCallback(attr, null, this.getAttribute(attr))
     })
   }
 }
+
 customElements.define("weavy-environment", Weavy);
 
 const StaticWeavy = new Weavy();

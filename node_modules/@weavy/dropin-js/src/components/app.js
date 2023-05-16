@@ -320,16 +320,17 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
     // Set id
 
     this.configure();
+    console.log("constructor")
 
     try {
-      this.root = new WeavyRoot(this, this);
+      this.root = new WeavyRoot(this);
       this.root.className = this.className;
     } catch (e) {
       console.warn("could not create app root in container:", this.#appId, e);
     }
 
     try {
-      this.overlayRoot = new WeavyRoot(document.documentElement, this);
+      this.overlayRoot = new WeavyRoot(this);
       this.overlayRoot.className = this.className;
     } catch (e) {
       console.warn(
@@ -338,6 +339,8 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
         e
       );
     }
+
+
 
     Weavy.whenReady().then(() => {
       this.options = assign(
@@ -353,20 +356,26 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
         this.openBrowserState(state);
       });
 
-      // CONFIGURE
-      this.fetchOrCreate();
-      this.build();
-
-      if (!this.isLoaded && this.autoLoad !== false) {
-        this.load(null, true);
-      }
     });
 
     // CONSTRUCTOR END
   }
 
   connectedCallback() {
-    this.#styles.updateStyles();
+    this.append(this.root.root);
+    document.documentElement.append(this.overlayRoot.root);
+
+    // CONFIGURE
+    Weavy.whenReady().then(() => {
+      this.#styles.updateStyles();
+
+      this.fetchOrCreate();
+      this.build();
+
+      if (!this.isLoaded && this.autoLoad !== false) {
+        this.load(null, true);
+      }
+    })
   }
 
   /**
@@ -447,27 +456,21 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
    * @resolves {WeavyApp#whenInitialized}
    */
   async fetchOrCreate() {
-    if (this.options && typeof this.options === "object") {
-      var initAppUrl = new URL(appUrl, this.environment.url);
+    var initAppUrl = new URL(appUrl, this.environment.url);
 
-      assign;
-
-      try {
-        let data = await this.environment.fetch(
-          initAppUrl,
-          { uid: this.uid, type: this.type },
-          "POST"
-        );
-        this.data = data;
-      } catch (error) {
-        console.error("WeavyApp.fetchOrCreate()", error.message);
-        throw new Error(error);
-      }
-
-      await this.configure();
-    } else {
-      throw new Error("WeavyApp.fetchOrCreate() requires options");
+    try {
+      let data = await this.environment.fetch(
+        initAppUrl,
+        { uid: this.uid, type: this.type },
+        "POST"
+      );
+      this.data = data;
+    } catch (error) {
+      console.error("WeavyApp.fetchOrCreate()", error.message);
+      throw new Error(error);
     }
+
+    await this.configure();
   }
 
   /**
