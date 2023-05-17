@@ -297,15 +297,12 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
       this.data = data;
     }
 
-    if (this.options.load === false) {
-      this.autoLoad = false;
-    }
-
-    this.className = this.options.className || "";
-
     this.#styles = new WeavyStyles(this);
     this.#styles.eventParent = this;
-    this.#styles.css = this.options.css || "";
+
+    if (this.options.styles !== undefined) {
+      this.#styles.css = this.options.css;
+    }
 
     this.#styles.on("styles-update", async () => {
       await this.whenBuilt();
@@ -348,8 +345,6 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
         options,
         true
       );
-
-      this.className = this.options.className || "";
 
       this.environment.on("history-restore", (state) => {
         console.log("history-restore", state);
@@ -399,8 +394,12 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
     }
 
     if (this.options && typeof this.options === "object") {
-      if (this.container === null) {
-        this.container = this.options.container;
+      if (this.options.load === false) {
+        this.autoLoad = false;
+      }
+  
+      if (this.options.className !== undefined) {
+        this.className = this.options.className;
       }
 
       if (this.uid === null && this.options.uid) {
