@@ -11,58 +11,203 @@ const userUrl = "/dropin/client/user";
 
 var console = new WeavyConsole("WeavyAuthentication");
 
+/**
+ * Weavy environment user
+ * 
+ * @typedef {object} WeavyUser
+ * @property {number?} id - User id of the authenticated user. -1 means unauthorized.
+ */
+
+/**
+ * Authentication handling for weavy environments.
+ * 
+ * @class
+ * @extends WeavyEvents
+ */
 class WeavyAuthentication extends WeavyEvents {
+  /**
+   * Indicates if the authentication currently is updating the data from the environment.
+   * @private
+   * @type {boolean}
+   */
   #isUpdating = false;
 
+  /**
+   * Indicates if the authentication is initialized.
+   * @private
+   * @type {boolean}
+   */
   #isInitialized = false;
+
+  /**
+   * Indicates if the authentication is initialized.
+   * @readonly
+   * @type {boolean}
+   */
   get isInitialized() {
     return this.#isInitialized === true;
   }
 
+  /**
+   * The url for authentication. Defaults to current location.
+   * 
+   * @private
+   * @type {URL}
+   */
   #url = new URL(window.location.origin + "/");
+
+  /**
+   * The url for the environment.
+   * 
+   * @readonly
+   * @type {URL}
+   */
   get url() {
     return this.#url;
   }
 
+  /**
+   * The current user.
+   * 
+   * @private
+   * @type {WeavyUser?}
+   */
   #user = null;
+
+  /**
+   * The currently authenticated user.
+   * 
+   * `null` is unauthenticated.
+   * `id: -1`is authenticated but unauthorized.
+   * 
+   * @readonly
+   * @type {WeavyUser}
+   */
   get user() {
     return this.#user;
   }
 
-  // Is the user established?
+  /**
+   * Is the user established?
+   * @private
+   * @type {boolean?}
+   */
   #isAuthenticated = null;
+
+  /**
+   * Indicates if the user is established.
+   * 
+   * @readonly
+   * @type {boolean}
+   */
   get isAuthenticated() {
     return this.#isAuthenticated === true;
   }
 
+  /**
+   * Indicates if a tokenFactory has been provided.
+   * 
+   * @readonly
+   * @type {boolean}
+   */
   get isProvided() {
     return !!this.#tokenFactory;
   }
 
+  /**
+   * Promise resolved when a user has been established.
+   * @private
+   * @type {WeavyPromise}
+   */
   #whenAuthenticated = new WeavyPromise();
+
+  /**
+   * Async function resolved when a user has been established.
+   * @async
+   * @returns {Promise<WeavyUser>}
+   */
   whenAuthenticated() {
     return this.#whenAuthenticated();
   }
 
+  /**
+   * Indicates if an authenticated user has authorized access.
+   * 
+   * @readonly
+   * @type {boolean}
+   */
   get isAuthorized() {
     return this.#checkAuthorized(this.#user);
   }
 
+  /**
+   * Promise resolved when an authenticated user has authorized access.
+   * @private
+   * @type {WeavyPromise}
+   */
   #whenAuthorized = new WeavyPromise();
+
+  /**
+   * Async function resolved when an authenticated user has authorized access.
+   * 
+   * @async
+   */
   whenAuthorized() {
     return this.#whenAuthorized();
   }
 
+  /**
+   * Promise resolved when the user has signed out.
+   * 
+   * @private
+   * @type {WeavyPromise}
+   */
   #whenSignedOut = new WeavyPromise();
+
+  /**
+   * Is the user currently signing out?
+   * 
+   * @private
+   * @type {boolean}
+   */
   #isSigningOut = false;
 
   // ACCESS TOKEN
+
+  /**
+   * The current access token
+   * 
+   * @private
+   * @type {string?}
+   */
   #accessToken;
+
+  /**
+   * The current async tokenFactory function
+   * @private
+   * @type {(refresh: boolean) => Promise<string>|null}
+   */
   #tokenFactory;
 
+  /**
+   * Has any fresh token been requested?
+   * @private
+   * @type {boolean}
+   */
   #isTokenRequested = false;
+
+  /**
+   * Promise resolved whenever a requested token has been produced. Keeps track of the current request.
+   * @private
+   * @type {WeavyPromise}
+   */
   #whenTokenProduced = new WeavyPromise();
 
+  /**
+   * Creates a new instance for a specific environment URL. Instantiation is normally handled by {@link WeavyUrlClassManager}.
+   * 
+   * @param {URL|string} baseUrl - The url to the environment 
+   */
   constructor(baseUrl) {
     super();
 
@@ -77,7 +222,7 @@ class WeavyAuthentication extends WeavyEvents {
   /**
    * Checks if the provided user is signed in
    *
-   * @param {any} user - User to check
+   * @param {WeavyUser?} user - User to check
    */
   #checkAuthorized(user) {
     if (user) {
@@ -86,6 +231,12 @@ class WeavyAuthentication extends WeavyEvents {
     return false;
   }
 
+  /**
+   * Sets the async function for getting access tokens. 
+   * Resets any current access token.
+   *  
+   * @param {(refresh: boolean) => Promise<string>} tokenFactory 
+   */
   setTokenFactory(tokenFactory) {
     console.debug("Configuring token factory");
     this.#accessToken = null;
@@ -97,7 +248,7 @@ class WeavyAuthentication extends WeavyEvents {
   /**
    * Returns the current access token; as a result from the supplied async function.
    * @param {boolean} [refresh=false] - Set to true if you want to call the host for a new token.
-   * @returns {Promise}
+   * @returns {Promise<string>}
    */
   getAccessToken(refresh) {
     if (this.#whenTokenProduced.state() !== "pending") {
@@ -149,6 +300,9 @@ class WeavyAuthentication extends WeavyEvents {
     return this.#whenTokenProduced();
   }
 
+  /**
+   * Unsets the token factory and clears any current access token.
+   */
   clearTokenFactory() {
     console.debug("clearing access token and token factory");
     this.#accessToken = null;
@@ -157,6 +311,12 @@ class WeavyAuthentication extends WeavyEvents {
     this.#whenTokenProduced.reset();
   }
 
+  /**
+   * Validates the user and access token.
+   * 
+   * @param {(refresh: boolean) => Promise<string>|undefined} tokenFactory - Any asyn tokenFactory function to assign before authenticating.
+   * @returns Promise<WeavyUser>
+   */
   init(tokenFactory) {
     if (
       this.#isAuthenticated === null ||
@@ -186,6 +346,12 @@ class WeavyAuthentication extends WeavyEvents {
     return this.#whenAuthenticated();
   }
 
+  /**
+   * Sets an environment user and checks authentication and authorization.
+   * 
+   * @private
+   * @param {WeavyUser?} user 
+   */
   #setUser(user) {
     if (user && user.id) {
       if (this.#user && user && this.#user.id !== user.id) {
@@ -219,7 +385,10 @@ class WeavyAuthentication extends WeavyEvents {
   // AUTHENTICATION
 
   /**
-   * Sign in using Single Sign On access token.
+   * Sign in by validating any access token provided by the async tokenFactory function.
+   * 
+   * @async
+   * @returns {Promise<WeavyUser>}
    */
   signIn() {
     if (this.#whenAuthenticated.state() !== "pending") {
@@ -239,6 +408,8 @@ class WeavyAuthentication extends WeavyEvents {
    * Sign out the current user.
    *
    * @param {boolean} [clear] - Clears token factory after signOut
+   * @async
+   * @returns {Promise}
    */
   signOut(clear) {
     var authUrl = new URL(signOutUrl, this.url);
@@ -263,6 +434,14 @@ class WeavyAuthentication extends WeavyEvents {
     return this.#whenSignedOut();
   }
 
+  /**
+   * Checks if the current user state has changed.
+   * 
+   * @private
+   * @param {WeavyUser} user
+   * @emits WeavyAuthentication#user
+   * @emits WeavyAuthentication#clear-user
+   */
   #processUser(user) {
     // Default state when user is unauthenticated or has not changed
     var state = "updated";
@@ -292,6 +471,15 @@ class WeavyAuthentication extends WeavyEvents {
       }
 
       this.#setUser(user);
+
+      /**
+       * Triggered when the user state has changed.
+       * @event WeavyAuthentication#user
+       * @type {Object}
+       * @property {"updated"|"signed-out"|"changed-user"|"signed-in"|"user-error"} state - The state of the current user
+       * @property {boolean} authorized - Indicates if the authenticated user has authorized access.
+       * @property {WeavyUser} user - The current user.
+       */
       this.triggerEvent("user", {
         state: state,
         authorized: this.#checkAuthorized(user),
@@ -301,6 +489,11 @@ class WeavyAuthentication extends WeavyEvents {
       // No valid user state
       this.#setUser(null);
 
+      /**
+       * Triggered when no valid user state is established and the user needs to be cleared.
+       * 
+       * @event WeavyAuthentication#clear-user
+       */
       this.triggerEvent("clear-user");
       this.triggerEvent("user", {
         state: "user-error",
@@ -312,6 +505,12 @@ class WeavyAuthentication extends WeavyEvents {
     this.#isUpdating = false;
   }
 
+  /**
+   * Checks against the environment if the user state still is valid.
+   * 
+   * @async
+   * @returns {Promise<WeavyUser>}
+   */
   checkUserState() {
     if (!this.#isUpdating) {
       this.#isUpdating = true;
@@ -369,6 +568,13 @@ class WeavyAuthentication extends WeavyEvents {
     return this.#whenAuthenticated();
   }
 
+  /**
+   * Validates the access token against the environment.
+   * 
+   * @private
+   * @emits WeavyAuthentication#authentication-error
+   * @returns {Promise<WeavyUser>}
+   */
   #validateAccessToken() {
     var whenSSO = new WeavyPromise();
     var authUrl = new URL(ssoUrl, this.url);
@@ -414,6 +620,15 @@ class WeavyAuthentication extends WeavyEvents {
         })
         .catch((error) => {
           console.error("sign in with access token failed.", error.message);
+
+          /**
+           * Triggered when validation the access token fails.
+           * @event WeavyAuthentication#authentication-error
+           * @type {object}
+           * @property {"access_token"} method - Which method that triggered the error.
+           * @property {number} status - The HTTP status code.
+           * @property {string} message - Any error message from the environment.
+           */
           this.triggerEvent("authentication-error", {
             method: "access_token",
             status: 401,
@@ -424,6 +639,9 @@ class WeavyAuthentication extends WeavyEvents {
     });
   }
 
+  /**
+   * Cleans up the instance.
+   */
   destroy() {
     this.#isAuthenticated = null;
     this.#user = null;

@@ -1,16 +1,16 @@
 /**
  * Multi site manager for handling instances of a given Class tied to a unique URL.
+ * @template T
  */
 export default class WeavyUrlClassManager {
-  #SiteClass;
+  #ClassType;
   #sites;
 
   /**
-   *
-   * @param {Class} CreateClass The Class that should be instantiated for each unique url.
+   * @param {T} CreateClass The Class that should be instantiated for each unique url.
    */
   constructor(CreateClass) {
-    this.#SiteClass = CreateClass;
+    this.#ClassType = CreateClass;
     this.#sites = new Map();
   }
 
@@ -19,7 +19,7 @@ export default class WeavyUrlClassManager {
    * Returns existing instances for existing URLs.
    *
    * @param {URL|string} url - The URL to get a new or existing instance for.
-   * @returns {any}
+   * @returns {T}
    */
   get(url) {
     var sameOrigin = false;
@@ -35,7 +35,7 @@ export default class WeavyUrlClassManager {
     if (this.#sites.has(url)) {
       return this.#sites.get(url);
     } else {
-      var siteInstance = new this.#SiteClass(url);
+      var siteInstance = new this.#ClassType(url);
       this.#sites.set(url, siteInstance);
       return siteInstance;
     }

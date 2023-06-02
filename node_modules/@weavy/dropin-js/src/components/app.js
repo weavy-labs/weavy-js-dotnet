@@ -8,6 +8,7 @@ import WeavyOverlays from "./overlays";
 import Weavy from "../weavy";
 import WeavyStyles, { applyStyleSheet } from "./styles";
 import FileBrowser from "./filebrowser";
+import { classNamesConcat } from "../utils/dom";
 
 const console = new WeavyConsole("App");
 //console.debug("app.js");
@@ -31,7 +32,6 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (name === "class") {
-      console.log("Updating class");
       this.whenBuilt().then(() => {
         this.root.className = newValue;
         this.panel.className = newValue;
@@ -127,6 +127,8 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
    * @property {string} type - The kind of app. <br> • posts <br> • files <br> • messenger <br> • notifications <br> • comments <br> • chat
    * @property {string} className - Custom className to add to the app.
    * @property {string} css - Custom CSS to add to the app.
+   * @property {boolean} [shadowMode=closed] - Set whether ShadowDOMs should be `closed` (recommended) or `open`.
+   * @property {string} [filebrowser=https://filebrowser.weavy.io/v14/] - The url to the filebrowser.
    */
   options = {};
 
@@ -317,7 +319,6 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
     // Set id
 
     this.configure();
-    console.log("constructor")
 
     try {
       this.root = new WeavyRoot(this);
@@ -357,6 +358,7 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
   }
 
   connectedCallback() {
+    
     this.append(this.root.root);
     document.documentElement.append(this.overlayRoot.root);
 
@@ -398,8 +400,8 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
         this.autoLoad = false;
       }
   
-      if (this.options.className !== undefined) {
-        this.className = this.options.className;
+      if (this.options.className !== undefined && this.options.className !== null) {
+        this.className = classNamesConcat(this.options.className, this.className);
       }
 
       if (this.uid === null && this.options.uid) {

@@ -7,7 +7,8 @@ const console = new WeavyConsole("BrowserHistory");
  * Gets the global state for all weavy instances combined, stored in the browser history state.
  * The state has the same structure as a single weavy instance state.
  *
- * @returns {WeavyHistory~weavyState}
+ * @param {string} id - The group identifier for storage. 
+ * @returns {object}
  */
 export function getBrowserState(id) {
   var historyState = assign({}, window.history.state, true);
@@ -20,7 +21,8 @@ export function getBrowserState(id) {
  * Saves a weavy state to the browser history by either push or replace.
  * Any existing state will be preserved and existing states from other weavy instances will be merged.
  *
- * @param {WeavyHistory~weavyState} state - The state to add to any existing state
+ * @param {string} id - The group id for storage.
+ * @param {any} state - The state to add to any existing state
  * @param {string} [action] - If set to "replace", the current history state will be updated.
  * @param {any} [url] - Any new url to use for the state. If omitted, the current location will be reused.
  */

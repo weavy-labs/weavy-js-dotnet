@@ -5,12 +5,12 @@ console.log("Configuring ACME Weavy")
 window.Weavy = Weavy;
 
 // init weavy
+Weavy.tz = user_timezone || ''
 Weavy.url = weavy_url,
 Weavy.tokenFactory = async (refresh) => {
-    var response = await fetch('/token?refresh=' + (refresh || false));
-    return await response.text();
-  }
-Weavy.tz = user_timezone || ''
+  var response = await fetch('/token?refresh=' + (refresh || false));
+  return await response.text();
+}
 
 
 Weavy.defaults.className = document.documentElement.dataset.bsTheme === 'dark' ? 'wy-dark' : '';

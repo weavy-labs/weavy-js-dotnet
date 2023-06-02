@@ -27,22 +27,27 @@ console.info("weavy.js", WEAVY_DEVELOPMENT ? "dev" : "");
  */
 
 /**
- * All options are optional.
- *
+ * General class for setting the environment configuration for Weavy apps. Also handles default options for any created.
+ * You need to at least configure the `url` to your weavy environment and define a `tokenFactory` that provides access tokens via your server when requested.
+ * 
+ * Exports an instance by default.
+ * 
+ * Can be initialized as a custom component using `<weavy-environment url="https://www.example.test" token-factory="async () => '{ACCESS_TOKEN}'" />`
+ * 
  * If you want to connect to a specific server use the [url option]{@link Weavy#options}.
  *
  * @example
- * var weavy = new Weavy();
- *
- * var coreDevWeavy = new Weavy({ url: "http://myweavysite.dev" });
+ * Weavy.url = "https://www.example.test";
+ * Weavy.tokenFactory = async () => "{ACCESS_TOKEN}"
  *
  * @class Weavy
- * @classdesc The core class for the Weavy client.
+ * @extends {HTMLElement}
+ * @classdesc The static core class for configuring the Weavy environment.
  */
 
 class Weavy extends HTMLElement {
   /**
-   * Default options. These options are general for all Weavy instances and may be overridden in {@link Weavy#options}.
+   * Default options for apps. These options are general for all instantiated Weavy apps.
    * You may add any general options you like here.
    *
    * @example
@@ -52,14 +57,8 @@ class Weavy extends HTMLElement {
    *     className: "",
    * };
    *
-   * // Set a general url to connect all weavy instances to
-   * Weavy.defaults.url = "https://myweavysite.com";
-   * var weavy = new Weavy();
-   *
-   * @type {Object}
+   * @type {WeavyApp~options}
    * @name Weavy.defaults
-   * @property {string} [className] - Additional classNames added to weavy.
-   * @property {boolean} [shadowMode=closed] - Set whether ShadowDOMs should be `closed` (recommended) or `open`.
    */
   defaults = {
     shadowMode: "closed",
@@ -68,15 +67,24 @@ class Weavy extends HTMLElement {
 
   /**
    * The version of Weavy.
-   * @name Weavy.version
    * @type {string}
    */
   get version() {
     return WEAVY_VERSION;
   }
 
+  /**
+   * @private
+   * @type {WeavyEnvironments~ClassType}
+   */
   #environment;
 
+  /**
+   * The environment instance.
+   * 
+   * @readonly
+   * @type {WeavyEnvironments~ClassType}
+   */
   get environment() {
     if (!this.#environment) {
       throw new Error("No URL is defined for the environment. Please point Weavy.url to your environment.")
@@ -87,7 +95,7 @@ class Weavy extends HTMLElement {
   /**
    * The url of the weavy server.
    *
-   * @member {URL} Weavy#url
+   * @type {URL} Weavy#url
    **/
   get url() {
     return this.#environment?.url;
@@ -97,8 +105,22 @@ class Weavy extends HTMLElement {
     this.setAttribute('url', url)
   }
 
+  /**
+   * @private
+   * @async
+   * @function
+   * @returns {string}
+   */
   #tokenFactory;
 
+
+  /**
+   * Async function returning an access token for user authentication.
+   * 
+   * @async
+   * @function
+   * @returns {string}
+   */
   get tokenFactory() {
     return this.environment?.options.tokenFactory || this.#tokenFactory;
   }
@@ -111,8 +133,17 @@ class Weavy extends HTMLElement {
     }
   }
 
+  /**
+   * @private
+   * @type {string}
+   */
   #tz;
 
+
+  /**
+   * Timezone identifier, e.g. <code>Pacific Standard Time</code>. When specified, this setting overrides the timezone setting on a user's profile. The list of valid timezone identifiers can depend on the version and operating system of your Weavy server.
+   * @type {string}
+   */
   get tz() {
     return this.#environment?.options.tz || this.#tz;
   }
@@ -125,8 +156,16 @@ class Weavy extends HTMLElement {
     }
   }
 
+  /**
+   * @private
+   * @type {string}
+   */
   #lang;
 
+  /**
+   * [Language code]{@link https://en.wikipedia.org/wiki/ISO_639-1} of preferred user interface language, e.g. <code>en</code> for English. When set, it must match one of your environment configured languages.
+   * @type {string}
+   */
   get lang() {
     return this.#environment?.options.lang || this.#lang;
   }
@@ -139,12 +178,27 @@ class Weavy extends HTMLElement {
     }
   }
 
+  /**
+   * @private
+   * @type {WeavyPromise}
+   */
   #whenReady = new WeavyPromise();
 
-  whenReady() {
-    return this.#whenReady();
+  /**
+   * Async function resolved when the environment is configured with an `url`.
+   * 
+   * @async
+   * @function 
+   */
+  async whenReady() {
+    return await this.#whenReady();
   }
 
+  /**
+   * Method for fetching data from the Web API. Automatically handles all authentication and CORS settings.
+   * @async 
+   * @type {typeof WeavyEnvironment.fetch}
+   */
   get fetch() {
     if (!this.#environment) {
       throw new Error("fetch: No URL is defined for the environment. Please point Weavy.url to your environment.")
@@ -159,7 +213,12 @@ class Weavy extends HTMLElement {
   attributeChangedCallback(name, oldValue, newValue) {
     if (name === 'url') {
       this.#environment = WeavyEnvironments.get(newValue);
-      this.#environment.configure(Object.assign({}, this));
+      this.#environment.configure({ 
+        defaults: this.defaults,
+        tokenFactory: this.tokenFactory,
+        tz: this.tz,
+        lang: this.lang
+      });
       this.#whenReady.resolve()
     } else if (name === 'tz') {
       this.#tz = newValue;
@@ -168,6 +227,9 @@ class Weavy extends HTMLElement {
       }
     } else if (name === 'lang') {
       this.#lang = newValue;
+      if (this.#environment) {
+        this.#environment.configure({ lang: newValue });
+      }
     } else if (name === 'token-factory') {
       this.#tokenFactory = eval?.(`"use strict";(${newValue})`);
       if (this.#environment) {
