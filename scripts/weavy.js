@@ -1,26 +1,25 @@
 import { Weavy, Messenger, Chat, Files, Posts } from '@weavy/dropin-js';
-console.log("Configuring ACME Weavy")
+console.log("Configuring ACME Weavy");
 
 // Expose Weavy to inline scripts
 window.Weavy = Weavy;
 
 // init weavy
-Weavy.tz = user_timezone || ''
-Weavy.url = weavy_url,
+Weavy.tz = user_timezone || '';
+Weavy.url = weavy_url;
 Weavy.tokenFactory = async (refresh) => {
   var response = await fetch('/token?refresh=' + (refresh || false));
   return await response.text();
-}
-
+};
 
 Weavy.defaults.className = document.documentElement.dataset.bsTheme === 'dark' ? 'wy-dark' : '';
 
 // listen to theme changes and update weavy accordingly
 const observer = new MutationObserver((mutationList) => {
   mutationList.forEach((mutation) => {
-    let isDark = mutation.target.dataset.bsTheme === 'dark'
-    const apps = document.querySelectorAll('weavy-posts, weavy-messenger, weavy-chat, weavy-files')
-    apps.forEach((app) => isDark ? app.classList.add("wy-dark") : app.classList.remove("wy-dark"))   
+    let isDark = mutation.target.dataset.bsTheme === 'dark';
+    const apps = document.querySelectorAll('weavy-posts, weavy-messenger, weavy-chat, weavy-files');
+    apps.forEach((app) => isDark ? app.classList.add("wy-dark") : app.classList.remove("wy-dark")); 
   });
 });
 observer.observe(document.documentElement, { attributes: true });
@@ -30,16 +29,16 @@ const messengerContainer = document.getElementById("messenger");
 if (messengerContainer) {
   // load messenger
   const messenger = new Messenger({
-    load: false, // app is initially unloaded
+    load: false // app is initially unloaded
   });
 
   // Set dark theme className for the messenger
   if (document.documentElement.dataset.bsTheme === 'dark') {
-    messenger.classList.add("wy-dark")
+    messenger.classList.add("wy-dark");
   } 
 
   // Add the messenger to the DOM
-  messengerContainer.append(messenger)
+  messengerContainer.append(messenger);
 
   // load messenger when container DOM element (bootstrap off-canvas) is shown 
   messengerContainer.addEventListener('show.bs.offcanvas', event => {
@@ -55,8 +54,6 @@ if (messengerContainer) {
     });
   }
 }
-
-
 
 // connect to signalr hub for realtime events
 var connection = new signalR.HubConnectionBuilder().withUrl('/hub').build();

@@ -10,7 +10,9 @@ const console = new WeavyConsole("Styles")
 export function applyStyleSheet(root, stylesheet) {
   // Prefer modern CSS registration
   if (WeavyStyles.supportsConstructableStyleSheets) {
-    root.adoptedStyleSheets = Array.prototype.concat.call(root.adoptedStyleSheets, [stylesheet]);
+    try {
+      root.adoptedStyleSheets = Array.prototype.concat.call(root.adoptedStyleSheets, [stylesheet]);    
+    } catch(e) { /* No worries */ }
   } else {
     // Fallback CSS registration
     (root === document ? document.head : root).appendChild(stylesheet);
@@ -33,13 +35,25 @@ export function createStyleSheet(css) {
 }
 
 export function updateStyleSheet(styleSheet, css) {
+  css = moveImportsToTop(css)
     // Prefer modern CSS registration
     if (WeavyStyles.supportsConstructableStyleSheets) {
-      styleSheet.replaceSync(css);
+      try {
+        styleSheet.replaceSync(css);
+      } catch(e) { /* No worries */ }
+
     } else {
       // Fallback CSS registration
       styleSheet.replaceChildren(document.createTextNode(css));
     }
+}
+
+export function moveImportsToTop(css) {
+  // Move @imports to the top
+  let foundImports = []
+  css = css.replace(/@import\s+\S*;?/gm, (match) => { foundImports.push(match); return ""; });
+  css = foundImports.join("\n") + css;
+  return css;
 }
 
 /**
@@ -124,13 +138,10 @@ export default class WeavyStyles extends WeavyEvents {
   set css(css) {
     this.#css = css
 
-    // Check if we have a new color?
-    this.#updateExternalColor();
-
     this.styleSheets.custom ??= createStyleSheet();
     updateStyleSheet(this.styleSheets.custom, css);
 
-    this.#showAnyErrors(this.#element.id, "Some stylesheets could not be processed");
+    this.updateStyles();
   }
 
    /**
@@ -420,10 +431,7 @@ export default class WeavyStyles extends WeavyEvents {
 
     let combinedCSS = [rootFont, rootColors, this.#externalCss, rootVars, this.#css].filter((s) => s).join("\n");
 
-    // Move @imports to the top
-    let foundImports = []
-    combinedCSS = combinedCSS.replace(/@import\s+\S*;?/gm, (match) => { foundImports.push(match); return ""; });
-    combinedCSS = foundImports.join("\n") + combinedCSS;
+    combinedCSS = moveImportsToTop(combinedCSS);
 
     return combinedCSS;
   }

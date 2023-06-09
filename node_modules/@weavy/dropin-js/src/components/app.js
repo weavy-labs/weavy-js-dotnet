@@ -6,7 +6,7 @@ import WeavyPanel from "./panel";
 import WeavyRoot from "./dom-root";
 import WeavyOverlays from "./overlays";
 import Weavy from "../weavy";
-import WeavyStyles, { applyStyleSheet } from "./styles";
+import WeavyStyles, { applyStyleSheet, moveImportsToTop } from "./styles";
 import FileBrowser from "./filebrowser";
 import { classNamesConcat } from "../utils/dom";
 
@@ -27,7 +27,7 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
   };
 
   static get observedAttributes() {
-    return ["class", "load", "uid"];
+    return ["class", "load", "uid", "css"];
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -37,6 +37,13 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
         this.panel.className = newValue;
         this.overlays.className = newValue;
       });
+    }
+
+    if (name === "css") {
+      this.css = newValue;
+      this.whenBuilt().then(() => {
+        this.panel.postStyles()
+      })
     }
   }
   /**
@@ -302,7 +309,9 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
     this.#styles = new WeavyStyles(this);
     this.#styles.eventParent = this;
 
-    if (this.options.styles !== undefined) {
+    if (this.hasAttribute("css")) {
+      this.#styles.css = this.getAttribute("css");
+    } else if (this.options.styles !== undefined) {
       this.#styles.css = this.options.css;
     }
 
@@ -361,6 +370,10 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
     
     this.append(this.root.root);
     document.documentElement.append(this.overlayRoot.root);
+
+    if (this.hasAttribute("css")) {
+      this.css = this.getAttribute("css");
+    }
 
     // CONFIGURE
     Weavy.whenReady().then(() => {
@@ -494,9 +507,9 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
     this.overlays.className = this.className;
 
     this.on("panel-css", (eventCss) => {
-      eventCss.css = [eventCss.css, this.#styles.getAllCSS()]
+      eventCss.css = moveImportsToTop([eventCss.css, this.#styles.getAllCSS()]
         .filter((s) => s)
-        .join("\n");
+        .join("\n"));
     });
 
     this.on("overlay-open", (overlayOptions) => {
@@ -771,18 +784,6 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
   async postMessage(message, transfer) {
     await this.whenBuilt();
     await this.panel.postMessage(message, transfer);
-  }
-
-  /**
-   * Adds CSS styles to the app using inline css.
-   *
-   * @category methods
-   * @function WeavyApp#addCSS
-   * @param {string} css - CSS string
-   */
-  async addCSS(css) {
-    await this.whenBuilt();
-    this.root.addStyles({ css });
   }
 
   /**
