@@ -84,6 +84,13 @@ class WeavyEnvironment extends WeavyEvents {
     return this.#url;
   }
 
+  /**
+   * The weavy console logging.
+   */
+  get console() {
+    return console;
+  }
+
   // ID functions
 
   /**
@@ -365,6 +372,10 @@ class WeavyEnvironment extends WeavyEvents {
             initData.tz = this.options.tz;
           }
 
+          if (this.options.version) {
+            initData.version = this.options.version;
+          }
+
           console.log("init", initData)
 
           /**
@@ -460,7 +471,7 @@ class WeavyEnvironment extends WeavyEvents {
 
     let response = await window.fetch(url.toString(), settings);
 
-    if (response.status === 401 || response.status === 403) {
+    if (response.status === 400 || response.status === 401 || response.status === 403) {
       console.warn("fetch: access token failed, trying again");
 
       let token = await this.#authentication.getAccessToken(true);

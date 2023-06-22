@@ -90,6 +90,13 @@ export default class WeavyStyles extends WeavyEvents {
   static supportsConstructableStyleSheets = 'adoptedStyleSheets' in document;
 
   /**
+   * The weavy console logging.
+   */
+  get console() {
+    return console;
+  }
+
+  /**
    * The node where external styles are calculated from.
    * @private
    * @type {HTMLElement}

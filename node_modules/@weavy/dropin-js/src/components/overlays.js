@@ -28,6 +28,13 @@ export default class WeavyOverlays extends WeavyEvents {
     #environment;
     root;
 
+    /**
+     * The weavy console logging.
+     */
+    get console() {
+        return console;
+    }
+
     #overlays = new Map();
 
     #container = null;

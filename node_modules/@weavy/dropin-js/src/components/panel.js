@@ -40,6 +40,13 @@ export default class WeavyPanel extends MixinWeavyEvents(HTMLElement) {
   attributes;
   node;
   frame;
+
+  /**
+   * The weavy console logging.
+   */
+  get console() {
+    return console;
+  }
   
   #className = "";
 

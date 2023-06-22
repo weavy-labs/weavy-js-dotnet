@@ -5,7 +5,7 @@ import WeavyPromise from "./utils/promise";
 import WeavyConsole from "./utils/console";
 
 const console = new WeavyConsole("Weavy");
-console.info("weavy.js", WEAVY_DEVELOPMENT ? "dev" : "");
+console.info("weavy.js loaded", WEAVY_DEVELOPMENT ? "in dev mode" : "");
 
 // WEAVY
 
@@ -52,10 +52,8 @@ class Weavy extends HTMLElement {
    *
    * @example
    * // Defaults
-   * Weavy.defaults = {
-   *     css: "",
-   *     className: "",
-   * };
+   * Weavy.defaults.css: "",
+   * Weavy.defaults.className: "",
    *
    * @type {WeavyApp~options}
    * @name Weavy.defaults
@@ -63,6 +61,12 @@ class Weavy extends HTMLElement {
   defaults = {
     shadowMode: "closed",
     filebrowser: "https://filebrowser.weavy.io/v14/",
+    get console() {
+      return WeavyConsole.defaults
+    },
+    set console(options) {
+      WeavyConsole.defaults = options
+    }
   };
 
   /**
@@ -213,11 +217,13 @@ class Weavy extends HTMLElement {
   attributeChangedCallback(name, oldValue, newValue) {
     if (name === 'url') {
       this.#environment = WeavyEnvironments.get(newValue);
+      this.#environment.console.options = this.defaults.console;
       this.#environment.configure({ 
         defaults: this.defaults,
         tokenFactory: this.tokenFactory,
         tz: this.tz,
-        lang: this.lang
+        lang: this.lang,
+        version: this.version
       });
       this.#whenReady.resolve()
     } else if (name === 'tz') {

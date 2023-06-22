@@ -25,6 +25,13 @@ export default class FileBrowser {
 
   #panelSource = null;
 
+  /**
+   * The weavy console logging.
+   */
+  get console() {
+    return console;
+  }
+
   constructor(environment, overlays, options) {
 
     this.#environment = environment;

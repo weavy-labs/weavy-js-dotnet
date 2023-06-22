@@ -1,4 +1,4 @@
-import { assign, isPlainObject, eqString } from "../utils/objects";
+import { assign, eqString } from "../utils/objects";
 import WeavyPromise from "../utils/promise";
 import WeavyConsole from "../utils/console";
 import { MixinWeavyEvents } from "../utils/events";
@@ -46,12 +46,19 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
       })
     }
   }
+
+  /**
+   * The weavy console logging.
+   */
+  get console() {
+    return console;
+  }
+
   /**
    * The uid of the app, defined in options.
    * @category properties
    * @type {string}
    */
-
   get uid() {
     return this.getAttribute("uid");
   }
@@ -229,6 +236,13 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
   isInitialized = false;
 
   /**
+   * Has the app been built?
+   * @category properties
+   * @type {boolean}
+   */
+  isBuilt = false;
+
+  /**
    * Has the app loaded?
    * @category properties
    * @type {boolean}
@@ -294,13 +308,15 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
   constructor(options, data) {
     super();
 
-    console.debug("new WeavyApp", options);
-
     this.options = assign(
       assign(Weavy.defaults, WeavyApp.defaults, true),
       options,
       true
     );
+
+    console.options = this.options.console;
+
+    console.debug("new WeavyApp", options);
 
     if (data) {
       this.data = data;
@@ -380,7 +396,6 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
       this.#styles.updateStyles();
 
       this.fetchOrCreate();
-      this.build();
 
       if (!this.isLoaded && this.autoLoad !== false) {
         this.load(null, true);
@@ -480,11 +495,13 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
       );
       this.data = data;
     } catch (error) {
-      console.error("WeavyApp.fetchOrCreate()", error.message);
+      console.error("fetchOrCreate() failed", error);
+      this.whenInitialized.reject(error);
       throw new Error(error);
     }
 
     await this.configure();
+    await this.build();
   }
 
   /**
@@ -495,142 +512,139 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
    * @resolves {WeavyApp#whenBuilt}
    */
   async build() {
-    await this.whenInitialized();
+    if (!this.isBuilt && this.isInitialized) {
+      this.isBuilt = true;
+      //await this.whenInitialized();
+      
+      console.debug("build()")
 
-    /**
-     * Instance of the overlay manager for all overlays in the weavy instance.
-     *
-     * @type {WeavyPanels}
-     * @category panels
-     **/
-    this.overlays = new WeavyOverlays(this.environment, this.overlayRoot, this);
-    this.overlays.className = this.className;
+      /**
+       * Instance of the overlay manager for all overlays in the weavy instance.
+       *
+       * @type {WeavyPanels}
+       * @category panels
+       **/
+      this.overlays = new WeavyOverlays(this.environment, this.overlayRoot, this);
+      this.overlays.className = this.className;
 
-    this.on("panel-css", (eventCss) => {
-      eventCss.css = moveImportsToTop([eventCss.css, this.#styles.getAllCSS()]
-        .filter((s) => s)
-        .join("\n"));
-    });
-
-    this.on("overlay-open", (overlayOptions) => {
-      var overlay = this.overlays.getOverlay(overlayOptions);
-
-      //if (overlay.location && overlay.location !== overlayOptions.url) {
-      //this.#reset(overlay);
-      //}
-      overlay.open(overlayOptions.url);
-    });
-
-    this.on("before:navigate", (request) => {
-      console.log("before:navigate", request);
-      this.#openRequest(request);
-      return false;
-    });
-
-    this.on("overlay-history-add", ({ action, states }) => {
-      this.environment.setHistory(action, {
-        id: "overlays-" + this.#appId,
-        overlays: states,
+      this.on("panel-css", (eventCss) => {
+        eventCss.css = moveImportsToTop([eventCss.css, this.#styles.getAllCSS()]
+          .filter((s) => s)
+          .join("\n"));
       });
-    });
 
-    this.filebrowser = new FileBrowser(this.environment, this.overlays);
+      this.on("overlay-open", (overlayOptions) => {
+        var overlay = this.overlays.getOverlay(overlayOptions);
 
-    // TODO: UNREGISTER
-    this.environment.authentication.on("signed-in", async () => {
-      if (this.isLoaded) {
-        // Reopen on sign in
-        this.load(null, true);
-      }
-    });
+        //if (overlay.location && overlay.location !== overlayOptions.url) {
+        //this.#reset(overlay);
+        //}
+        overlay.open(overlayOptions.url);
+      });
 
-    if (this.options && this.data) {
-      if (!this.isBuilt && this.root) {
-        this.isBuilt = true;
-        console.debug("Building app", this.#appId);
+      this.on("before:navigate", (request) => {
+        console.log("before:navigate", request);
+        this.#openRequest(request);
+        return false;
+      });
 
-        var panelId = "app-" + this.#appId;
-
-        this.panel = new WeavyPanel();
-        this.panel.configure(
-          this.environment,
-          panelId,
-          this.url,
-          { className: this.className },
-          this
-        );
-        this.root.container.appendChild(this.panel.node);
-
-        this.panel.on("panel-history-add", ({ action, state }) => {
-          state.id = this.#appId;
-          this.environment.setHistory(action, state);
+      this.on("overlay-history-add", ({ action, states }) => {
+        this.environment.setHistory(action, {
+          id: "overlays-" + this.#appId,
+          overlays: states,
         });
+      });
 
+      this.filebrowser = new FileBrowser(this.environment, this.overlays);
+
+      // TODO: UNREGISTER
+      this.environment.authentication.on("signed-in", async () => {
+        if (this.isLoaded) {
+          // Reopen on sign in
+          this.load(null, true);
+        }
+      });
+      var panelId = "app-" + this.#appId;
+
+      this.panel = new WeavyPanel();
+      this.panel.configure(
+        this.environment,
+        panelId,
+        this.url,
+        { className: this.className },
+        this
+      );
+      this.root.container.appendChild(this.panel.node);
+
+      this.panel.on("panel-history-add", ({ action, state }) => {
+        state.id = this.#appId;
+        this.environment.setHistory(action, state);
+      });
+
+      /**
+       * Triggered when the app panel is opened.
+       *
+       * @category events
+       * @event WeavyApp#app-open
+       * @returns {Object}
+       * @property {WeavyApp} app - The app that fires the event
+       * @extends WeavyPanel#event:panel-open
+       */
+      this.panel.on("panel-open", (data) =>
+        this.triggerEvent("app-open", data)
+      );
+
+      /**
+       * Triggered when the app receives a postMessage sent from the panel frame.
+       *
+       * @category events
+       * @event WeavyApp#message
+       * @returns {Object}
+       * @property {WeavyApp} app - The app that fires the event
+       * @extends WeavyPanels#event:message
+       */
+      this.on("before:message", (message) => {
+        if (message.panelId === panelId) {
+          return assign(message, { app: this });
+        }
+      });
+
+      this.panel.whenReady().then(() => {
         /**
-         * Triggered when the app panel is opened.
+         * Triggered when the app has loaded it's contents.
          *
          * @category events
-         * @event WeavyApp#app-open
-         * @returns {Object}
-         * @property {WeavyApp} app - The app that fires the event
-         * @extends WeavyPanel#event:panel-open
-         */
-        this.panel.on("panel-open", (data) =>
-          this.triggerEvent("app-open", data)
-        );
-
-        /**
-         * Triggered when the app receives a postMessage sent from the panel frame.
-         *
-         * @category events
-         * @event WeavyApp#message
-         * @returns {Object}
-         * @property {WeavyApp} app - The app that fires the event
-         * @extends WeavyPanels#event:message
-         */
-        this.on("before:message", (message) => {
-          if (message.panelId === panelId) {
-            return assign(message, { app: this });
-          }
-        });
-
-        this.panel.whenReady().then(() => {
-          /**
-           * Triggered when the app has loaded it's contents.
-           *
-           * @category events
-           * @event WeavyApp#app-load
-           * @returns {Object}
-           * @property {WeavyApp} app - The app that fires the event
-           */
-          this.triggerEvent("app-load");
-
-          this.whenLoaded.resolve();
-        });
-
-        this.panel.on("message", (message, event) => {
-          if (
-            message.name === "request:file-browser-open" &&
-            message.panelId === panelId
-          ) {
-            console.log("request:file-browser-open");
-            // Remember app source
-            this.filebrowser.loadFilebrowser(event);
-          }
-        });
-
-        /**
-         * Triggered when the app panel is built.
-         *
-         * @category events
-         * @event WeavyApp#app-build
+         * @event WeavyApp#app-load
          * @returns {Object}
          * @property {WeavyApp} app - The app that fires the event
          */
-        this.triggerEvent("app-build");
+        this.triggerEvent("app-load");
 
-        this.whenBuilt.resolve();
-      }
+        this.whenLoaded.resolve();
+      });
+
+      this.panel.on("message", (message, event) => {
+        if (
+          message.name === "request:file-browser-open" &&
+          message.panelId === panelId
+        ) {
+          console.log("request:file-browser-open");
+          // Remember app source
+          this.filebrowser.loadFilebrowser(event);
+        }
+      });
+
+      /**
+       * Triggered when the app panel is built.
+       *
+       * @category events
+       * @event WeavyApp#app-build
+       * @returns {Object}
+       * @property {WeavyApp} app - The app that fires the event
+       */
+      this.triggerEvent("app-build");
+
+      this.whenBuilt.resolve();
     }
   }
 
@@ -823,73 +837,6 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
     }
 
     return false;
-  }
-
-  /**
-   * Function for making an object in to an app definition object
-   *
-   * @function WeavyApp.getAppSelector
-   * @param {WeavyApp#options} options - The object to parse
-   * @returns {Object} appSelector
-   * @returns {boolean} appSelector.isUid - Is AppOptions parsed as an uid app definition (Object)?
-   * @returns {boolean} appSelector.isType - Is AppOptions parsed as a type app definition (Object)?
-   * @returns {Object} appSelector.selector - App definition object
-   */
-  static getAppSelector(options) {
-    var isUid = isPlainObject(options) && options.uid;
-    var isType = isPlainObject(options) && !options.uid && options.type;
-
-    var selector = (isUid || isType) && options;
-
-    return { isUid: isUid, isType: isType, selector: selector };
-  }
-
-  /**
-   * Selects, fetches or creates an app.
-   *
-   * The app needs to be defined using an app definition object containing at least an uid or type, which will fetch or create the app on the server.
-   * If the defined app already has been defined, the app will only be selected in the client.
-   *
-   * @example
-   * // Define an app that will be fetched or created on the server
-   * var app = weavy.app({ uid: "my_uid", type: "files", container: "#mycontainer" });
-   *
-   * @category apps
-   * @function WeavyApp#select
-   * @param {WeavyApp#options} options - app definition object.
-   * @returns {WeavyApp}
-   */
-  static select(options) {
-    var app;
-
-    var appSelector = WeavyApp.getAppSelector(options);
-
-    if (appSelector.selector) {
-      try {
-        app = WeavyApp.#apps
-          .filter((a) => {
-            return a.match(appSelector.selector);
-          })
-          .pop();
-      } catch (e) {
-        /* let app be null */
-      }
-
-      if (!app) {
-        if (appSelector.isUid || appSelector.isType) {
-          app = new WeavyApp(options);
-          WeavyApp.#apps.push(app);
-          app.fetchOrCreate();
-        } else {
-          console.warn(
-            "App " +
-              JSON.stringify(appSelector.selector) +
-              " is not defined properly."
-          );
-        }
-      }
-    }
-    return app;
   }
 
   // CLASS END

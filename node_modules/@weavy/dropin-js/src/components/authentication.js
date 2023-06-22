@@ -40,6 +40,13 @@ class WeavyAuthentication extends WeavyEvents {
   #isInitialized = false;
 
   /**
+   * The weavy console logging.
+   */
+  get console() {
+    return console;
+  }
+
+  /**
    * Indicates if the authentication is initialized.
    * @readonly
    * @type {boolean}

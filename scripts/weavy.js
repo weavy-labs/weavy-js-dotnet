@@ -1,5 +1,9 @@
 import { Weavy, Messenger, Chat, Files, Posts } from '@weavy/dropin-js';
+
 console.log("Configuring ACME Weavy");
+
+//Weavy.defaults.console.log = true; // Enable additional logging
+Weavy.defaults.className = document.documentElement.dataset.bsTheme === 'dark' ? 'wy-dark' : '';
 
 // Expose Weavy to inline scripts
 window.Weavy = Weavy;
@@ -11,8 +15,6 @@ Weavy.tokenFactory = async (refresh) => {
   var response = await fetch('/token?refresh=' + (refresh || false));
   return await response.text();
 };
-
-Weavy.defaults.className = document.documentElement.dataset.bsTheme === 'dark' ? 'wy-dark' : '';
 
 // listen to theme changes and update weavy accordingly
 const observer = new MutationObserver((mutationList) => {

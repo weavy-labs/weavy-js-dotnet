@@ -29,6 +29,13 @@ class WeavyPostalParent extends WeavyEvents {
 
     timeout = 2000;
 
+    /**
+     * The weavy console logging.
+     */
+    get console() {
+        return console;
+    }
+
     constructor(options) {
         super()
 

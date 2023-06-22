@@ -94,20 +94,17 @@ var WeavyConsole = function (context, options) {
     * Enable logging messages in console. Set the individual logging types to true/false or the entire property to true/false;
     *
     * @example
-    * weavy.console.logging = {
+    * console.options = {
     *     log: true,
     *     info: true,
     *     warn: true,
     *     error: true
     * };
     *
-    * @example
-    * weavy.console.logging = false;
-    *
-    * @name options
+    * @name logging
     * @memberof WeavyConsole#
     * @typedef
-    * @type {Object|boolean}
+    * @type {Object}
     * @property {string} color - A hex color to use for id. A random color will be chosen if omitted.
     * @property {boolean} log=true - Enable log messages in console
     * @property {boolean} info=true - Enable info messages in console

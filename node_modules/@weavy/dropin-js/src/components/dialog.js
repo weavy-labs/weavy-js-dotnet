@@ -36,6 +36,13 @@ export default class WeavyDialog {
         className: "wy-alert wy-fade",
         containerClassName: "wy-alerts"
     };
+    
+    /**
+     * The weavy console logging.
+     */
+    get console() {
+        return console;
+    }
 
 
     constructor(root, options) {

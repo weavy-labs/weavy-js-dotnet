@@ -6,6 +6,7 @@ import WeavyEvents from '../utils/events';
 import { createStyleSheet, applyStyleSheet } from "./styles";
 
 const console = new WeavyConsole("DOM root")
+
 /**
  * @class WeavyRoot
 
@@ -63,6 +64,13 @@ export default class WeavyRoot extends WeavyEvents {
    * @type {CSSStyleSheet|StyleElement}
    */
   static globalStyleSheet;
+
+  /**
+   * The weavy console logging.
+   */
+  get console() {
+    return console;
+  }
 
   /**
    * The the &lt;weavy-root/&gt; that acts as root. May contain a ShadowDOM if supported.
