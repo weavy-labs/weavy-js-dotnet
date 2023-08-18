@@ -343,7 +343,7 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
 
     // Set id
 
-    this.configure();
+    this.#appId = this.uid || this.type || this.options.uid || this.options.type;
 
     try {
       this.root = new WeavyRoot(this);
@@ -363,9 +363,9 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
       );
     }
 
-
-
     Weavy.whenReady().then(() => {
+      this.configure();
+
       this.options = assign(
         assign(Weavy.defaults, WeavyApp.defaults, true),
         options,
@@ -383,7 +383,11 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
   }
 
   connectedCallback() {
-    
+    this.configure();
+
+    this.root.className = this.className;
+    this.overlayRoot.className = this.className;
+
     this.append(this.root.root);
     document.documentElement.append(this.overlayRoot.root);
 
@@ -396,6 +400,8 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
       this.#styles.updateStyles();
 
       this.fetchOrCreate();
+
+      console.log("hey", this.autoLoad)
 
       if (!this.isLoaded && this.autoLoad !== false) {
         this.load(null, true);
@@ -695,6 +701,7 @@ export default class WeavyApp extends MixinWeavyEvents(HTMLElement) {
       this.whenBuilt(),
       this.environment.whenReady(),
     ]);
+    console.log("autoloading")
     await this.panel.open(destination, noHistory);
   }
 

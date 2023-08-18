@@ -21,8 +21,8 @@
     pointer-events: none;
 
     font-family: #{vars.$font-family-base}, inherit;
-    font-size: rem(1);
-    line-height: rem(1.5);
+    font-size: 1rem;
+    line-height: 1.5rem;
     position: relative;
     display: flex;
     flex-direction: column;

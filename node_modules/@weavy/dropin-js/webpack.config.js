@@ -129,7 +129,14 @@ module.exports = (env) => {
               },
             },
             // Compiles Sass to CSS
-            "sass-loader",
+            {
+              loader: "sass-loader",
+              options: {
+                sassOptions: {
+                  quiet: env?.production ? true : false
+                },
+              },
+            },
           ],
         },
       ]

@@ -42,14 +42,6 @@ export default class Messenger extends WeavyApp {
         options = assign(Messenger.defaults, options, true)
         super(options)
 
-        if (options.badge) {
-            if (options.pollingTime) {
-                this.pollingTime = options.pollingTime
-            }
-
-            this.badge = options.badge
-        }
-
         this.on("message", { name: "badge" }, (message) => {
             if (this.badge) {
                 /**
@@ -63,6 +55,18 @@ export default class Messenger extends WeavyApp {
                 this.triggerEvent("badge", { count: message.count })
             }
         });
+    }
+
+    connectedCallback() {
+        super.connectedCallback()
+
+        if (this.options.badge) {
+            if (this.options.pollingTime) {
+                this.pollingTime = this.options.pollingTime
+            }
+
+            this.badge = this.options.badge
+        }
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
