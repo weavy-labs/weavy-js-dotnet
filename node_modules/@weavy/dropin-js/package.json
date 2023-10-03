@@ -1,6 +1,6 @@
 {
   "name": "@weavy/dropin-js",
-  "version": "17.2.1",
+  "version": "18.0.0",
   "author": "Weavy",
   "description": "Javascript library for the Weavy drop-in UI",
   "homepage": "https://github.com/weavy/weavy-dropin-js",
