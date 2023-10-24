@@ -5,13 +5,16 @@
   ],
   "scripts": {
     "build": "run-p css js",
+    "buildarm": "run-p css jsarm",
     "css": "sass --style=compressed --no-source-map --no-error-css --quiet styles:wwwroot",
     "css-watch": "sass --watch --style=expanded --no-source-map styles:wwwroot ",
     "js": "esbuild scripts/theme.js scripts/weavy.js --bundle --minify --outdir=wwwroot",
+    "jsarm": "./node_modules/@esbuild/darwin-arm64/bin/esbuild scripts/theme.js scripts/weavy.js --bundle --minify --outdir=wwwroot",
     "js-watch": "esbuild scripts/theme.js scripts/weavy.js --bundle --watch --outdir=wwwroot",
     "watch": "run-p css-watch js-watch"
   },
   "dependencies": {
+    "@esbuild/darwin-arm64": "^0.19.5",
     "@popperjs/core": "^2.11.8",
     "@weavy/dropin-js": "^18.0.1",
     "bootstrap": "^5.3.1",

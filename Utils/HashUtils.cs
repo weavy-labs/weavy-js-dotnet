@@ -24,10 +24,6 @@ public static class HashUtils {
     /// <param name="input">The input to compute the hash code for.</param>
     /// <returns>The computed hash as a hex-encoded string.</returns>
     public static string HMAC(string alg, string secret, string input) {
-        ArgumentException.ThrowIfNullOrEmpty(alg);
-        ArgumentException.ThrowIfNullOrEmpty(secret);
-        ArgumentException.ThrowIfNullOrEmpty(input);
-
         var key = Encoding.UTF8.GetBytes(secret);
         switch (alg.ToLowerInvariant()) {
             case "sha256":

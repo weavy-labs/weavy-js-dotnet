@@ -11,7 +11,8 @@ namespace Acme.Models;
 [Index(nameof(Guid), IsUnique = true)]
 [Index(nameof(Email), IsUnique = true)]
 [Index(nameof(Username), IsUnique = true)]
-public class User {
+public class User
+{
 
     /// <summary>
     ///  The user id.
@@ -28,7 +29,7 @@ public class User {
     /// </summary>
     [Required]
     [StringLength(256, ErrorMessage = "{0} must have a maximum length of {1}.")]
-    public required string Name { get; set; }
+    public string Name { get; set; }
 
     /// <summary>
     /// Gets or sets the job title/position.

@@ -44,3 +44,6 @@ Some of the things showcased in the application are:
 
 This application uses a SQLite database, `acme.db`, to store application data such as users and their settings. The database is automatically created on startup, and deleting it will reset the database to it's initial state on next startup.
 
+## Additional Notes
+- https://www.weavy.com/docs/get-started/javascript-net
+- make sure use node 20+
