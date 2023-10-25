@@ -2,12 +2,5 @@
 @{
   ViewBag.Title = Model.DisplayName;
 }
-<div class="contextual-app" data-type="@Model.Type" data-uid="@Model.Uid">
-  @if (Model.Type.ToString() == "d65dd4bc-418e-403c-9f56-f9cf4da931ed") {
-    <weavy-chat uid="@Model.Uid" />
-  } else if (Model.Type.ToString() == "523edd88-4bbf-4547-b60f-2859a6d2ddc1") {
-    <weavy-files uid="@Model.Uid" />
-  } else if (Model.Type.ToString() == "5ebfa152-de85-48da-82dd-30a1b560c313") {
-    <weavy-posts uid="@Model.Uid" />
-  }
-</div>
+
+ @await Component.InvokeAsync("Chat", Model)

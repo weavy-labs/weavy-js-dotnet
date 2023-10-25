@@ -16,8 +16,15 @@ public class HomeController : Controller {
     }
 
     [HttpGet("")]
-    public IActionResult Index() {
-        return View();
+    public async Task<IActionResult> Index() {
+        var app = new AppModel
+        {
+            Type = "chat",
+            Uid = "index",
+            Name = "Index",
+        };
+        var model = await _weavy.InitApp(app, User);
+        return View(model);
     }
 
     [HttpGet("chat")]
@@ -25,7 +32,7 @@ public class HomeController : Controller {
         // init Weavy chat app and ensure authenticated user is member
         var app = new AppModel {
             Type = "chat",
-            Uid = "acme_chat",
+            Uid = "chat",
             Name = "Chat",
         };
         var model = await _weavy.InitApp(app, User);
@@ -37,7 +44,7 @@ public class HomeController : Controller {
         // init Weavy files app and ensure authenticated user is member
         var app = new AppModel {
             Type = "files",
-            Uid = "acme_files",
+            Uid = "files",
             Name = "Files",
         };
         var model = await _weavy.InitApp(app, User);
@@ -49,7 +56,7 @@ public class HomeController : Controller {
         // init Weavy posts app and ensure authenticated user is member
         var app = new AppModel {
             Type = "posts",
-            Uid = "acme_feed",
+            Uid = "feed",
             Name = "Feed",
         };
         var model = await _weavy.InitApp(app, User);
@@ -62,7 +69,7 @@ public class HomeController : Controller {
         // init Weavy chat app and ensure authenticated user is member
         var app = new AppModel {
             Type = "chat",
-            Uid = "acme_chat",
+            Uid = "message",
             Name = "Chat",
         };
         var model = await _weavy.InitApp(app, User);
