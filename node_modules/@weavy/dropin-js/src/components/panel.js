@@ -368,7 +368,16 @@ export default class WeavyPanel extends MixinWeavyEvents(HTMLElement) {
       attributes: attributes,
     });
 
-    this.whenDOMConnected.resolve();
+    const checkFrameContentWindow = () => {
+      if (this.node.isConnected && this.frame.contentWindow) {
+        this.whenDOMConnected.resolve();
+      } else {
+          requestAnimationFrame(checkFrameContentWindow)
+      }
+    }
+
+    checkFrameContentWindow();
+
     // CONFIGURE END
   }
 
