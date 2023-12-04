@@ -99,7 +99,7 @@ public class AppResponse  {
     /// <summary>
     /// Gets the app members.
     /// </summary>
-    public IEnumerable<MemberResponse> Members { get; set; }
+    public MembersResponse Members { get; set; }
 
     /// <summary>
     /// 
